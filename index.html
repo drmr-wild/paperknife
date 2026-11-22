@@ -1,0 +1,1893 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#F6F7F9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C1F25" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Paperknife">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<title>Paperknife</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Dancing+Script:wght@600&family=Caveat:wght@500&display=swap">
+<style>
+:root{
+  --bg:#E7EAEF; --panel:#F6F7F9; --panel2:#FFFFFF; --stage:#D7DBE2;
+  --ink:#1A1D23; --ink2:#5C6472; --ink3:#8C93A0;
+  --line:#CFD4DC; --line2:#E3E6EC;
+  --accent:#1F4FD8; --accent-ink:#FFFFFF; --accent-soft:#E2E9FB; --accent-soft2:#C9D6F7;
+  --mark:#F2B33D; --danger:#C8352E; --ok:#178A4C;
+  --shadow:0 1px 2px rgba(20,28,45,.10), 0 6px 18px rgba(20,28,45,.10);
+  --sheet-shadow:0 2px 6px rgba(20,28,45,.18), 0 18px 40px rgba(20,28,45,.16);
+  --radius:6px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161A; --panel:#1C1F25; --panel2:#242830; --stage:#0E1013;
+    --ink:#E6E8EC; --ink2:#9AA2AF; --ink3:#6C7482;
+    --line:#333944; --line2:#2A2F38;
+    --accent:#7A9BFF; --accent-ink:#0E1730; --accent-soft:#25304B; --accent-soft2:#2F3F66;
+    --mark:#F2B33D; --danger:#F26E67; --ok:#3FB472;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
+    --sheet-shadow:0 2px 6px rgba(0,0,0,.5), 0 18px 40px rgba(0,0,0,.45);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14161A; --panel:#1C1F25; --panel2:#242830; --stage:#0E1013;
+  --ink:#E6E8EC; --ink2:#9AA2AF; --ink3:#6C7482;
+  --line:#333944; --line2:#2A2F38;
+  --accent:#7A9BFF; --accent-ink:#0E1730; --accent-soft:#25304B; --accent-soft2:#2F3F66;
+  --mark:#F2B33D; --danger:#F26E67; --ok:#3FB472;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
+  --sheet-shadow:0 2px 6px rgba(0,0,0,.5), 0 18px 40px rgba(0,0,0,.45);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,.tile:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+
+#app{display:grid;grid-template-rows:48px 1fr 26px;height:100vh}
+
+/* ---------- top bar ---------- */
+.topbar{display:flex;align-items:center;gap:8px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:8px;margin-right:8px;font-weight:600;font-size:15px;letter-spacing:-.01em}
+.brand svg{width:20px;height:20px}
+.sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+.spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel2);color:var(--ink);white-space:nowrap}
+.btn:hover{border-color:var(--ink3)}
+.btn:disabled{opacity:.45;cursor:default;border-color:var(--line)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:500}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.icon{width:30px;padding:0;justify-content:center}
+.btn.danger:hover{color:var(--danger);border-color:var(--danger)}
+.btn svg{width:16px;height:16px;flex:none}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--panel2)}
+.seg button{height:28px;padding:0 12px;border:0;background:transparent;color:var(--ink2)}
+.seg button.on{background:var(--accent-soft);color:var(--ink);font-weight:500}
+
+/* ---------- work area ---------- */
+.work{display:grid;grid-template-columns:184px 1fr 264px;min-height:0}
+.work.organize{grid-template-columns:0 1fr 264px}
+.work.organize .pages{display:none}
+
+.pages{display:flex;flex-direction:column;min-height:0;background:var(--panel);border-right:1px solid var(--line)}
+.panelhead{display:flex;align-items:center;gap:6px;height:36px;padding:0 10px;border-bottom:1px solid var(--line2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);font-weight:500}
+.panelhead .count{margin-left:auto;text-transform:none;letter-spacing:0}
+.opsbar{display:flex;flex-wrap:wrap;gap:4px;padding:6px 8px;border-bottom:1px solid var(--line2)}
+.opsbar .btn{height:26px;padding:0 6px;font-size:12px}
+.opsbar .btn.icon{width:26px}
+.tiles{flex:1;overflow:auto;padding:8px;display:flex;flex-direction:column;gap:4px}
+.tile{position:relative;display:grid;gap:4px;padding:6px 6px 4px;border-radius:var(--radius);cursor:grab;user-select:none;-webkit-user-select:none}
+.tile:hover{background:var(--line2)}
+.tile.sel{background:var(--accent-soft)}
+.tile.dragging{opacity:.4}
+.thumbwrap{aspect-ratio:1/1.15;display:grid;place-items:center;overflow:hidden}
+.thumbwrap img{max-width:100%;max-height:100%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);display:block;border-radius:1px}
+.thumbwrap .ph{width:70%;height:90%;background:var(--panel2);border:1px dashed var(--line)}
+.tile.cur .thumbwrap img{outline:2px solid var(--accent);outline-offset:1px}
+.tilemeta{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:var(--ink2)}
+.tilemeta .dot{width:6px;height:6px;border-radius:50%;background:var(--mark)}
+.tilemeta .src{color:var(--ink3);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tiles.list .tile.ins-before{box-shadow:0 -3px 0 0 var(--accent)}
+.tiles.list .tile.ins-after{box-shadow:0 3px 0 0 var(--accent)}
+.tiles.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));align-content:start;gap:8px;padding:14px}
+.tiles.grid .tile{padding:8px 8px 6px}
+.tiles.grid .thumbwrap{aspect-ratio:1/1.2}
+.tiles.grid .tile.ins-before{box-shadow:-3px 0 0 0 var(--accent)}
+.tiles.grid .tile.ins-after{box-shadow:3px 0 0 0 var(--accent)}
+
+.main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.toolbar{display:flex;align-items:center;gap:4px;height:40px;padding:0 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+.tool{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 9px;border:1px solid transparent;border-radius:var(--radius);background:transparent;color:var(--ink2)}
+.tool:hover{background:var(--line2);color:var(--ink)}
+.tool.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tool svg{width:16px;height:16px}
+.tool kbd{font:11px "IBM Plex Mono",monospace;opacity:.55}
+.zoom{display:inline-flex;align-items:center;gap:2px}
+.zoom .pct{width:52px;text-align:center;font-size:12px}
+#stage{flex:1;overflow:auto;background:var(--stage);position:relative}
+#stage.empty{display:grid;place-items:center}
+#sheet{position:relative;margin:24px auto;background:#fff;box-shadow:var(--sheet-shadow);display:none}
+#sheet.show{display:block}
+#pagecanvas{display:block}
+#overlay{position:absolute;inset:0;touch-action:none;cursor:default}
+#overlay.tool-text{cursor:text}
+#overlay.tool-rect,#overlay.tool-highlight,#overlay.tool-whiteout,#overlay.tool-image{cursor:crosshair}
+#overlay.tool-pen{cursor:crosshair}
+#overlay .ann{pointer-events:all}
+#overlay.tool-select .ann{cursor:move}
+#overlay .hit{stroke:transparent;fill:none}
+#overlay .sel-outline{fill:none;stroke:var(--accent);stroke-dasharray:4 3;vector-effect:non-scaling-stroke;pointer-events:none}
+#overlay .handle{fill:#fff;stroke:var(--accent);vector-effect:non-scaling-stroke;cursor:nwse-resize}
+#texted{position:absolute;margin:0;padding:0;border:1px dashed var(--accent);background:rgba(255,255,255,.6);color:#000;font-family:Helvetica,Arial,sans-serif;line-height:1.2;resize:none;overflow:hidden;white-space:pre;outline:none;min-height:1.2em}
+.emptystate{text-align:center;color:var(--ink2);max-width:360px}
+.emptystate h2{margin:0 0 6px;font-size:16px;font-weight:600;color:var(--ink)}
+.emptystate p{margin:0 0 14px}
+
+/* ---------- inspector ---------- */
+.inspector{display:flex;flex-direction:column;min-height:0;overflow:auto;background:var(--panel);border-left:1px solid var(--line)}
+.section{padding:10px 12px 12px;border-bottom:1px solid var(--line2);display:grid;gap:8px}
+.section h3{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);font-weight:500}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:12px}
+.kv dt{color:var(--ink2);margin:0}
+.kv dd{margin:0}
+.field{display:grid;gap:4px}
+.field label{font-size:11px;color:var(--ink2)}
+.row{display:flex;gap:6px;align-items:center}
+.input{height:28px;padding:0 8px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel2);width:100%;min-width:0}
+textarea.input{height:auto;padding:6px 8px;resize:vertical;min-height:56px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.swatches{display:flex;gap:5px;flex-wrap:wrap}
+.sw{width:20px;height:20px;border-radius:50%;border:2px solid transparent;padding:0;background:var(--c)}
+.sw.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--panel)}
+.colorpick{width:28px;height:28px;padding:0;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel2)}
+.check{display:flex;align-items:center;gap:6px;font-size:12px}
+.check input{accent-color:var(--accent)}
+.hint{font-size:11px;color:var(--ink3);line-height:1.4}
+.srcs{display:grid;gap:4px}
+.src{display:flex;align-items:center;gap:6px;font-size:12px}
+.src .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.src .n{color:var(--ink3)}
+.src button{border:0;background:transparent;color:var(--ink3);padding:2px;line-height:0}
+.src button:hover{color:var(--danger)}
+.badge{display:inline-block;padding:1px 6px;border-radius:10px;font-size:10px;background:var(--accent-soft);color:var(--ink);font-weight:500}
+
+/* ---------- status bar ---------- */
+.status{display:flex;align-items:center;gap:14px;padding:0 12px;background:var(--panel);border-top:1px solid var(--line);font-size:11px;color:var(--ink2)}
+.status .hintline{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status .busy{color:var(--accent)}
+
+/* ---------- overlays ---------- */
+#dropzone{position:fixed;inset:0;display:none;place-items:center;background:color-mix(in srgb,var(--accent) 18%,transparent);border:3px dashed var(--accent);z-index:50;pointer-events:none;font-size:18px;font-weight:500}
+#dropzone.show{display:grid}
+#toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:var(--radius);box-shadow:var(--shadow);font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60;max-width:80vw}
+#toast.show{opacity:1}
+.hiddeninput{display:none}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+@media (max-width:900px){ .work{grid-template-columns:150px 1fr 220px} .tool kbd{display:none} }
+
+/* ---------- v2: save state, dialogs, signature, scan, phone layout ---------- */
+[hidden]{display:none!important}
+*{-webkit-tap-highlight-color:transparent}
+.tile{-webkit-touch-callout:none}
+.status .save{white-space:nowrap}
+.status .save.err{color:var(--danger)}
+.onlynarrow{display:none}
+.sheethead{align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line2);font-weight:600}
+#overlay.tool-sign{cursor:copy}
+#overlay.tool-select{touch-action:pan-x pan-y}
+#overlay.tool-select .ann,#overlay .handle{touch-action:none}
+
+.modal{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(10,14,24,.45);padding:16px}
+.dialog{width:min(560px,100%);max-height:min(92dvh,780px);display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+.dialog.wide{width:min(880px,100%)}
+.dialog.slim{width:min(380px,100%)}
+.dialog header{display:flex;align-items:center;gap:10px;padding:10px 10px 10px 16px;border-bottom:1px solid var(--line2)}
+.dialog header h2{margin:0;font-size:15px;font-weight:600;flex:1}
+.dialog header .count{font-size:12px;color:var(--ink2)}
+.dialog .body{padding:14px 16px;overflow:auto;display:grid;gap:12px;align-content:start}
+.dialog footer{display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--line2);flex-wrap:wrap;justify-content:flex-end}
+.dialog footer .hint{flex:1;min-width:180px}
+
+.sigsaved{display:flex;gap:8px;flex-wrap:wrap}
+.sigchip{position:relative;height:56px;min-width:92px;max-width:170px;padding:6px 10px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;display:grid;place-items:center}
+.sigchip img{max-height:42px;max-width:100%;display:block}
+.sigchip.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft2)}
+.sigchip .x{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--panel2);color:var(--ink2);font-size:12px;line-height:18px;text-align:center}
+.sigchip .x:hover{color:var(--danger);border-color:var(--danger)}
+.sigbase{position:relative}
+.sigbase::after{content:"";position:absolute;left:8%;right:8%;bottom:27%;border-bottom:1px dashed #B9C0CC;pointer-events:none}
+#sigPad{width:100%;height:190px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);touch-action:none;display:block;cursor:crosshair}
+.fontopts{display:grid;gap:6px}
+.fontopt{height:58px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;color:#14161C;font-size:30px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 14px;text-align:left}
+.fontopt.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft2)}
+#sigPhotoPrev{max-width:100%;max-height:210px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);display:block}
+.inkrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.inkrow .grow{flex:1}
+
+.scanstart{display:grid;gap:12px;justify-items:center;text-align:center;padding:22px 8px}
+.scanstart p{margin:0;color:var(--ink2);max-width:46ch}
+.scanstart .big{height:44px;padding:0 18px;font-size:14px}
+.scanstart .row{flex-wrap:wrap;justify-content:center}
+.scanstage{position:relative;display:inline-block;justify-self:center;line-height:0;max-width:100%}
+#scanCanvas{max-width:100%;max-height:54dvh;display:block;border-radius:2px}
+#scanQuad{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#scanQuad polygon{fill:color-mix(in srgb,var(--accent) 14%,transparent);stroke:var(--accent);stroke-width:2;vector-effect:non-scaling-stroke}
+#scanQuad circle{fill:#fff;stroke:var(--accent);stroke-width:2;vector-effect:non-scaling-stroke;cursor:grab}
+.scanbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+
+#installTip{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:65;background:var(--ink);color:var(--bg);padding:10px 12px;border-radius:10px;font-size:13px;display:flex;gap:10px;align-items:center;box-shadow:var(--shadow)}
+#installTip button{margin-left:auto;border:0;background:transparent;color:inherit;font-size:18px;line-height:1;padding:4px}
+
+.main{container-type:inline-size;container-name:main}
+.toolbar{overflow-x:auto}
+.toolbar>*{flex:none}
+.toolbar>.spacer{flex:1 0 4px}
+@container main (max-width:1140px){ .tool kbd{display:none} }
+@container main (max-width:1020px){
+  .toolbar .tool{font-size:0;gap:0;padding:0;width:36px;justify-content:center}
+  .toolbar .tool svg{width:17px;height:17px}
+}
+@container main (max-width:700px){ #prevPage,#nextPage,#pageNav,.toolbar .sep{display:none} }
+@media (pointer:coarse){
+  .btn{height:36px} .btn.icon{width:36px} .tool{height:36px}
+  .opsbar .btn{height:34px} .opsbar .btn.icon{width:34px}
+  .sw{width:26px;height:26px} .input{height:36px} .seg button{height:34px}
+}
+
+@media (max-width:900px){
+  #app{grid-template-rows:auto 1fr auto;height:100dvh}
+  .topbar{height:calc(48px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 8px 0;gap:6px;overflow-x:auto}
+  .brand{display:none}
+  #btnRedo{display:none}
+  .topbar .btn{font-size:0;gap:0;width:38px;padding:0;justify-content:center;flex:none}
+  .topbar .btn svg{width:18px;height:18px}
+  .topbar .sep{display:none}
+  .topbar .spacer{min-width:0}
+  .seg{flex:none}
+  .seg button{padding:0 9px}
+  .work,.work.organize{display:flex;flex-direction:column}
+  .main{flex:1;order:1}
+  .pages{order:2;flex:none;border-right:0;border-top:1px solid var(--line)}
+  .pages .panelhead{display:none}
+  .opsbar{flex-wrap:nowrap;overflow-x:auto;border-bottom:0;padding:6px 8px 2px}
+  .opsbar .btn{flex:none}
+  .tiles.list{flex-direction:row;overflow-x:auto;overflow-y:hidden;padding:4px 8px 6px;flex:none}
+  .tiles.list .tile{flex:none;width:62px;padding:4px 4px 2px}
+  .tiles.list .tile.ins-before{box-shadow:-3px 0 0 0 var(--accent)}
+  .tiles.list .tile.ins-after{box-shadow:3px 0 0 0 var(--accent)}
+  .toolbar{overflow-x:auto;gap:2px;padding:0 6px;height:46px}
+  .toolbar .tool{font-size:0;gap:0;padding:0;width:38px;justify-content:center;flex:none}
+  .toolbar .tool svg{width:18px;height:18px}
+  .toolbar .spacer{min-width:4px}
+  .toolbar .zoom,.toolbar .btn{flex:none}
+  .zoom .pct,#zoomFit,.toolbar .sep,#prevPage,#nextPage,#pageNav{display:none}
+  .main{position:relative}
+  .toolbar .zoom{position:absolute;right:10px;bottom:10px;z-index:5;gap:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);overflow:hidden}
+  .toolbar .zoom .btn{border:0;border-radius:0;background:transparent;width:40px;height:38px;font-size:17px}
+  .work.organize .toolbar .zoom{display:none}
+  #sheet{margin:8px auto}
+  .inspector{position:fixed;left:0;right:0;bottom:0;z-index:40;max-height:68dvh;border-left:0;border-top:1px solid var(--line);border-radius:12px 12px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.25);transform:translateY(105%);transition:transform .2s;padding-bottom:env(safe-area-inset-bottom)}
+  .inspector.open{transform:none}
+  .onlynarrow{display:inline-flex}
+  .sheethead.onlynarrow{display:flex}
+  .status{padding-bottom:env(safe-area-inset-bottom);height:auto;min-height:24px}
+  .status .hintline{display:none}
+  .status #stTotals{display:none}
+  .status .save{flex:1}
+  .tiles.grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));padding:10px}
+  .modal{padding:0;place-items:end center}
+  .dialog,.dialog.wide,.dialog.slim{width:100%;max-height:94dvh;border-radius:12px 12px 0 0;padding-bottom:env(safe-area-inset-bottom)}
+}
+</style>
+
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2.5h7l4 4v11H5z"/><path d="M12 2.5v4h4"/><path d="M2.5 9.5 10 17"/><path d="M2.5 9.5 4.5 7.5 12 15 10 17"/></svg>
+      Paperknife
+    </div>
+    <button class="btn" id="btnOpen" title="Open PDFs or images (adds to the current pages)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5h4l1.5 1.5H14v7H2z"/></svg>Open…
+    </button>
+    <button class="btn" id="btnScan" title="Scan paper with the camera, or turn photos into pages">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5V3h2"/><path d="M12 3h2v2"/><path d="M14 11v2h-2"/><path d="M4 13H2v-2"/><path d="M4.5 8h7"/></svg>Scan
+    </button>
+    <div class="sep"></div>
+    <button class="btn icon" id="btnUndo" title="Undo (⌘Z)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4 3 7l3 3"/><path d="M3 7h6a4 4 0 0 1 0 8H7"/></svg></button>
+    <button class="btn icon" id="btnRedo" title="Redo (⇧⌘Z)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m10 4 3 3-3 3"/><path d="M13 7H7a4 4 0 0 0 0 8h2"/></svg></button>
+    <div class="spacer"></div>
+    <div class="seg" role="tablist">
+      <button id="viewEdit" class="on" title="Edit one page at a time">Edit</button>
+      <button id="viewOrganize" title="Reorder, rotate and remove pages in a grid">Organize</button>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="btnShare" title="Email or share the finished PDF">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="12" height="9" rx="1"/><path d="m2.5 4.5 5.5 4.5 5.5-4.5"/></svg>Email / Share
+    </button>
+    <button class="btn primary" id="btnExport" title="Build the PDF and save it">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8"/><path d="m5 7 3 3 3-3"/><path d="M3 13h10"/></svg>Export PDF
+    </button>
+  </header>
+
+  <div class="work" id="work">
+    <aside class="pages" id="pagesPanel">
+      <div class="panelhead">Pages <span class="count" id="pageCount"></span></div>
+      <div class="opsbar" id="opsbar">
+        <button class="btn icon" data-op="rotl" title="Rotate left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3 3 5l2 2"/><path d="M3 5h6a4 4 0 0 1 0 8H5"/></svg></button>
+        <button class="btn icon" data-op="rotr" title="Rotate right"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m11 3 2 2-2 2"/><path d="M13 5H7a4 4 0 0 0 0 8h4"/></svg></button>
+        <button class="btn icon" data-op="up" title="Move up"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3"/><path d="m4 7 4-4 4 4"/></svg></button>
+        <button class="btn icon" data-op="down" title="Move down"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10"/><path d="m4 9 4 4 4-4"/></svg></button>
+        <button class="btn icon" data-op="dup" title="Duplicate"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="8" height="8" rx="1"/><path d="M3 11V3h8"/></svg></button>
+        <button class="btn icon" data-op="blank" title="Insert blank page after"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h5l3 3v9H4z"/><path d="M8 7v4"/><path d="M6 9h4"/></svg></button>
+        <button class="btn icon" data-op="insert" title="Insert PDF after"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5h4l1.5 1.5H14v7H2z"/><path d="M8 8v4"/><path d="M6 10h4"/></svg></button>
+        <button class="btn icon danger" data-op="del" title="Delete page(s) (Delete)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10"/><path d="M6 4.5V3h4v1.5"/><path d="M4.5 4.5 5 13h6l.5-8.5"/></svg></button>
+      </div>
+      <div class="tiles list" id="tileList" tabindex="0"></div>
+    </aside>
+
+    <main class="main">
+      <div class="toolbar" id="toolbar">
+        <button class="tool on" data-tool="select" title="Select and move annotations (V)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 2.5 12.5 8.5 8.5 9.5 6.5 13.5z"/></svg>Select<kbd>V</kbd></button>
+        <button class="tool" data-tool="text" title="Add text (T)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 4V3h10v1"/><path d="M8 3v10"/><path d="M6 13h4"/></svg>Text<kbd>T</kbd></button>
+        <button class="tool" data-tool="highlight" title="Highlight an area (H)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="m9.5 2.5 4 4-6 6h-4v-4z"/><path d="M2 14h12"/></svg>Highlight<kbd>H</kbd></button>
+        <button class="tool" data-tool="rect" title="Draw a rectangle (R)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="3.5" width="11" height="9" rx="1"/></svg>Box<kbd>R</kbd></button>
+        <button class="tool" data-tool="pen" title="Draw freehand (P)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 13 1-4 7-7 3 3-7 7z"/><path d="m10 3 3 3"/></svg>Pen<kbd>P</kbd></button>
+        <button class="tool" data-tool="whiteout" title="Cover an area with white. The content underneath stays in the file. (W)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="m2.5 10 6-6 5 5-4 4h-4z"/><path d="M6 14h8"/></svg>Whiteout<kbd>W</kbd></button>
+        <button class="tool" data-tool="image" title="Place an image (I)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="2.5" y="3" width="11" height="10" rx="1"/><path d="m2.5 11 3.5-3.5 3 3 2-2 2.5 2.5"/><circle cx="10" cy="6" r="1"/></svg>Image<kbd>I</kbd></button>
+        <button class="tool" data-tool="sign" title="Place your signature (S). Click again to add or switch signatures."><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10.5c1.6-3.8 3-5.8 4-5.8 1.4 0-.6 5 .8 5 1 0 1.5-2.2 2.4-2.2.8 0 .5 1.7 1.4 1.7.6 0 1.2-.5 1.9-1.2"/><path d="M2 13.5h12"/></svg>Sign<kbd>S</kbd></button>
+        <div class="spacer"></div>
+        <div class="zoom">
+          <button class="btn icon" id="zoomOut" title="Zoom out (−)">−</button>
+          <span class="pct mono" id="zoomPct">100%</span>
+          <button class="btn icon" id="zoomIn" title="Zoom in (+)">+</button>
+          <button class="btn" id="zoomFit" title="Fit width (0)">Fit</button>
+        </div>
+        <div class="sep"></div>
+        <button class="btn icon" id="prevPage" title="Previous page (←)">‹</button>
+        <span class="mono" id="pageNav" style="font-size:12px;min-width:64px;text-align:center"></span>
+        <button class="btn icon" id="nextPage" title="Next page (→)">›</button>
+        <button class="btn icon onlynarrow" id="sheetOpen" title="Style, export and files"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4.5h6M12 4.5h2M2 11.5h2M8 11.5h6"/><circle cx="10" cy="4.5" r="1.7"/><circle cx="6" cy="11.5" r="1.7"/></svg></button>
+      </div>
+      <div id="stage">
+        <div id="sheet">
+          <canvas id="pagecanvas"></canvas>
+          <svg id="overlay" xmlns="http://www.w3.org/2000/svg"></svg>
+          <textarea id="texted" hidden spellcheck="false"></textarea>
+        </div>
+        <div class="emptystate" id="emptystate" hidden>
+          <h2>No pages yet</h2>
+          <p>Drop PDF files anywhere in this window, or open one to get started.</p>
+          <button class="btn primary" id="btnOpen2">Open PDF…</button>
+        </div>
+      </div>
+      <div class="tiles grid" id="tileGrid" hidden tabindex="0"></div>
+    </main>
+
+    <aside class="inspector" id="inspector">
+      <div class="sheethead onlynarrow"><span>Options</span><button class="btn" id="sheetClose">Done</button></div>
+      <div class="section" id="secPage">
+        <h3>Page</h3>
+        <dl class="kv" id="pageInfo"></dl>
+      </div>
+      <div class="section" id="secStyle">
+        <h3 id="styleTitle">Tool style</h3>
+        <div class="field">
+          <label>Color</label>
+          <div class="row">
+            <div class="swatches" id="swatches"></div>
+            <input type="color" class="colorpick" id="colorPick" title="Custom color">
+          </div>
+        </div>
+        <div class="field" id="fSize">
+          <label>Text size <span class="mono" id="sizeVal"></span></label>
+          <input type="range" id="sizeRange" min="6" max="72" step="1">
+        </div>
+        <div class="field" id="fWidth">
+          <label>Stroke width <span class="mono" id="widthVal"></span></label>
+          <input type="range" id="widthRange" min="0.5" max="16" step="0.5">
+        </div>
+        <label class="check" id="fFill"><input type="checkbox" id="fillCheck"> Fill box with color</label>
+        <div class="field" id="fText">
+          <label>Text</label>
+          <textarea class="input" id="textVal" rows="3"></textarea>
+        </div>
+        <div class="field" id="fSig">
+          <label>Signature to place</label>
+          <div class="sigsaved" id="sigQuick"></div>
+          <button class="btn" id="btnSigManage">New or other signature…</button>
+        </div>
+        <div class="row" id="annActions">
+          <button class="btn danger" id="btnDelAnn">Delete annotation</button>
+        </div>
+        <div class="hint" id="styleHint"></div>
+      </div>
+      <div class="section">
+        <h3>Export</h3>
+        <div class="field">
+          <label>File name</label>
+          <input class="input mono" id="fileName" value="document.pdf">
+        </div>
+        <button class="btn primary" id="btnExport2">Export all pages</button>
+        <button class="btn" id="btnExportSel">Export selected pages only</button>
+        <div class="hint">Annotations are drawn into the pages permanently. Text uses Helvetica. Whiteout covers content visually but does not remove it from the file.</div>
+      </div>
+      <div class="section">
+        <h3>Sources</h3>
+        <div class="srcs" id="srcs"></div>
+        <button class="btn danger" id="btnClear">Remove all pages</button>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="status">
+    <span id="stTotals" class="mono"></span>
+    <span class="hintline" id="stHint"></span>
+    <span id="stSave" class="save"></span>
+    <span id="stBusy" class="busy"></span>
+  </footer>
+</div>
+
+<div id="dropzone">Drop PDFs or images to add them</div>
+<div id="toast" role="status"></div>
+<input type="file" id="pdffile" class="hiddeninput" accept="application/pdf,.pdf,image/*" multiple>
+<input type="file" id="imgfile" class="hiddeninput" accept="image/*">
+
+
+<!-- ---------- signature dialog ---------- -->
+<div class="modal" id="sigModal" hidden>
+  <div class="dialog" role="dialog" aria-labelledby="sigTitle">
+    <header><h2 id="sigTitle">Signature</h2><button class="btn icon" data-close title="Close">×</button></header>
+    <div class="body">
+      <div class="field" id="sigSavedBox">
+        <label>Saved signatures (click one to use it)</label>
+        <div class="sigsaved" id="sigList"></div>
+      </div>
+      <div class="field">
+        <label>New signature</label>
+        <div class="seg" id="sigTabs" style="justify-self:start">
+          <button data-tab="draw" class="on">Draw</button>
+          <button data-tab="type">Type</button>
+          <button data-tab="photo">From photo</button>
+        </div>
+      </div>
+      <div data-pane="draw">
+        <div class="sigbase"><canvas id="sigPad"></canvas></div>
+      </div>
+      <div data-pane="type" hidden>
+        <input class="input" id="sigText" placeholder="Type your name" autocomplete="off" style="height:36px">
+        <div class="fontopts" id="sigFonts" style="margin-top:8px"></div>
+      </div>
+      <div data-pane="photo" hidden>
+        <div class="inkrow">
+          <button class="btn" id="sigPhotoBtn">Choose a photo of your signature…</button>
+          <span class="hint grow">Sign on white paper, photograph it, and the paper is removed.</span>
+        </div>
+        <canvas id="sigPhotoPrev" hidden style="margin-top:8px"></canvas>
+        <div class="field" id="sigThrBox" hidden style="margin-top:8px">
+          <label>Ink pickup</label>
+          <input type="range" id="sigThr" min="60" max="220" step="1" value="150">
+        </div>
+      </div>
+      <div class="inkrow">
+        <span class="hint">Ink</span>
+        <div class="swatches" id="sigInk"></div>
+        <span class="grow"></span>
+        <button class="btn" id="sigClear">Clear</button>
+      </div>
+    </div>
+    <footer>
+      <span class="hint">Kept only on this device. This places a picture of your signature; it is not a certificate-based digital signature.</span>
+      <button class="btn primary" id="sigSave">Save and use</button>
+    </footer>
+  </div>
+</div>
+
+<!-- ---------- scan dialog ---------- -->
+<div class="modal" id="scanModal" hidden>
+  <div class="dialog wide" role="dialog" aria-labelledby="scanTitle">
+    <header><h2 id="scanTitle">Scan</h2><span class="count mono" id="scanCount"></span><button class="btn icon" data-close title="Close">×</button></header>
+    <div class="body">
+      <div class="scanstart" id="scanStart">
+        <p id="scanStartMsg">Photograph a page, or pick photos you already have. Each one becomes a straightened PDF page.</p>
+        <div class="row">
+          <button class="btn primary big" id="scanCamBtn">Take photo</button>
+          <button class="btn big" id="scanPickBtn">Choose images…</button>
+        </div>
+        <p class="hint" id="scanHint"></p>
+      </div>
+      <div id="scanEdit" hidden style="display:grid;gap:12px">
+        <div class="scanstage"><canvas id="scanCanvas"></canvas><svg id="scanQuad" xmlns="http://www.w3.org/2000/svg"></svg></div>
+        <div class="scanbar">
+          <div class="seg" id="scanFilters">
+            <button data-f="doc" class="on" title="Black on white, shadows removed">Document</button>
+            <button data-f="gray" title="Grayscale">Gray</button>
+            <button data-f="color" title="Keep the photo as it is">Color</button>
+          </div>
+          <button class="btn" id="scanRotate" title="Rotate 90°">Rotate</button>
+          <button class="btn" id="scanFull" title="Use the whole photo">Whole image</button>
+        </div>
+        <div class="hint" style="text-align:center">Drag the four corners onto the corners of the page.</div>
+      </div>
+    </div>
+    <footer>
+      <button class="btn" id="scanSkip" hidden>Discard this photo</button>
+      <button class="btn primary" id="scanAdd" hidden>Add page</button>
+      <button class="btn primary" id="scanDone" hidden>Done</button>
+    </footer>
+  </div>
+</div>
+
+<!-- ---------- share-ready dialog (needed when the browser wants a fresh tap before sharing) ---------- -->
+<div class="modal" id="readyModal" hidden>
+  <div class="dialog slim" role="dialog" aria-labelledby="readyTitle">
+    <header><h2 id="readyTitle">Your PDF is ready</h2><button class="btn icon" data-close title="Close">×</button></header>
+    <div class="body"><div class="mono" id="readyName"></div></div>
+    <footer><button class="btn primary" id="readyShare">Share or save…</button></footer>
+  </div>
+</div>
+
+<div id="installTip" hidden><span>Install Paperknife: tap the Share button in Safari, then “Add to Home Screen”.</span><button id="installTipClose" title="Dismiss">×</button></div>
+<input type="file" id="scanCam" class="hiddeninput" accept="image/*" capture="environment">
+<input type="file" id="scanPick" class="hiddeninput" accept="image/*" multiple>
+<input type="file" id="sigPhotoFile" class="hiddeninput" accept="image/*">
+
+<script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script>
+(function(){
+'use strict';
+const CDN = 'https://cdnjs.cloudflare.com/ajax/libs/';
+pdfjsLib.GlobalWorkerOptions.workerSrc = CDN + 'pdf.js/3.11.174/pdf.worker.min.js';
+const { PDFDocument, StandardFonts, rgb, degrees, LineCapStyle, BlendMode } = PDFLib;
+const $ = s => document.querySelector(s);
+const NS = 'http://www.w3.org/2000/svg';
+
+/* ---------------- state ---------------- */
+const S = {
+  docs: new Map(),          // id -> {id,name,bytes,pdf,lib,sample,blank}
+  pages: [],                // {uid,docId,src,rot,anns:[]}
+  sel: new Set(), cur: null,
+  tool: 'select', view: 'edit', zoom: 1,
+  selAnn: null, undo: [], redo: [], dirty: false,
+  style: { color: '#D1201F', hl: '#FFE234', size: 16, width: 2.5, fill: false },
+  zone: 'stage', nameTouched: false,
+};
+let seq = 1; const nid = p => (p || 'a') + (seq++);
+const pageObjs = new Map();
+async function getPage(p){
+  const k = p.docId + ':' + p.src;
+  if (!pageObjs.has(k)) pageObjs.set(k, await S.docs.get(p.docId).pdf.getPage(p.src + 1));
+  return pageObjs.get(k);
+}
+const curPage = () => S.pages.find(p => p.uid === S.cur) || null;
+const findAnn = id => { const p = curPage(); return p ? p.anns.find(a => a.id === id) : null; };
+function targets(){ const t = S.pages.filter(p => S.sel.has(p.uid)); if (t.length) return t; const c = curPage(); return c ? [c] : []; }
+
+/* ---------------- undo ---------------- */
+function commit(){ S.undo.push(JSON.stringify(S.pages)); if (S.undo.length > 60) S.undo.shift(); S.redo.length = 0; S.dirty = true; syncUndoButtons(); scheduleSave(); }
+function restore(json){ S.pages = JSON.parse(json); const ids = new Set(S.pages.map(p => p.uid)); S.sel = new Set([...S.sel].filter(u => ids.has(u))); if (!ids.has(S.cur)) S.cur = S.pages[0]?.uid || null; if (S.cur && !S.sel.size) S.sel.add(S.cur); S.selAnn = null; refresh(); scheduleSave(); }
+function undo(){ if (!S.undo.length) return; S.redo.push(JSON.stringify(S.pages)); restore(S.undo.pop()); }
+function redo(){ if (!S.redo.length) return; S.undo.push(JSON.stringify(S.pages)); restore(S.redo.pop()); }
+function syncUndoButtons(){ $('#btnUndo').disabled = !S.undo.length; $('#btnRedo').disabled = !S.redo.length; }
+
+/* ---------------- toast / status ---------------- */
+let toastT;
+function toast(msg, ms){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms || 2600); }
+function busy(msg){ $('#stBusy').textContent = msg || ''; }
+const HINTS = {
+  select: 'Click an annotation to select it, drag to move. Delete removes it.',
+  text: 'Click on the page to place text. Enter commits, Shift+Enter adds a line.',
+  highlight: 'Drag over the text you want to highlight.',
+  rect: 'Drag to draw a box. Fill and stroke width are in the panel on the right.',
+  pen: 'Draw freehand. Each stroke becomes one annotation.',
+  whiteout: 'Drag to cover an area with white. The content underneath remains in the file.',
+  image: 'Click where the image should go, then choose a file.',
+  sign: 'Click the page where your signature should go. Then drag it into place and size it with the corner handle.',
+};
+function updateStatus(){
+  const anns = S.pages.reduce((n, p) => n + p.anns.length, 0);
+  const docs = [...S.docs.values()].filter(d => S.pages.some(p => p.docId === d.id) && !d.blank);
+  const sample = docs.some(d => d.sample);
+  $('#stTotals').textContent = `${S.pages.length} page${S.pages.length === 1 ? '' : 's'} · ${docs.length} file${docs.length === 1 ? '' : 's'} · ${anns} annotation${anns === 1 ? '' : 's'}`;
+  $('#stHint').textContent = (sample ? 'Showing a sample document. Open a PDF to replace it.  ' : '') + (HINTS[S.tool] || '');
+}
+
+/* ---------------- loading documents ---------------- */
+async function openFiles(files, insertAt){
+  const list = [...files].filter(f => /\.pdf$/i.test(f.name) || f.type === 'application/pdf');
+  const imgs = [...files].filter(f => !list.includes(f) && isImageFile(f)); if (imgs.length) scanEnqueue(imgs);
+  if (!list.length) { if (!imgs.length) toast('Only PDF and image files can be opened here.'); return; }
+  let at = insertAt;
+  for (const f of list) {
+    busy('Opening ' + f.name + '…');
+    const bytes = new Uint8Array(await f.arrayBuffer());
+    const n = await addDoc(f.name, bytes, at, {});
+    if (at != null) at += n;
+  }
+  busy('');
+}
+async function addDoc(name, bytes, insertAt, opts){
+  const task = pdfjsLib.getDocument({ data: bytes.slice() });
+  task.onPassword = (cb, reason) => {
+    const pw = prompt((reason === 2 ? 'Wrong password for ' : 'Password for ') + name + ':');
+    if (pw == null) { task.destroy(); return; }
+    cb(pw);
+  };
+  let pdf;
+  try { pdf = await task.promise; }
+  catch (e) { if (!/aborted|destroyed/i.test(e.message || '')) toast('Could not open ' + name + ': ' + e.message, 5000); return 0; }
+  commit();
+  const id = nid('d');
+  S.docs.set(id, { id, name, bytes, pdf, lib: null, sample: !!opts.sample, blank: !!opts.blank });
+  const fresh = [];
+  for (let i = 0; i < pdf.numPages; i++) fresh.push({ uid: nid('p'), docId: id, src: i, rot: 0, anns: [] });
+  if (!opts.sample && !opts.blank) {
+    const sample = [...S.docs.values()].find(d => d.sample);
+    if (sample && !sampleTouched()) { S.pages = S.pages.filter(p => p.docId !== sample.id); if (insertAt != null) insertAt = Math.min(insertAt, S.pages.length); }
+  }
+  const at = insertAt == null ? S.pages.length : Math.min(insertAt, S.pages.length);
+  S.pages.splice(at, 0, ...fresh);
+  S.cur = fresh[0].uid; S.sel = new Set(opts.blank ? [S.cur] : fresh.map(p => p.uid));
+  if (fresh.length > 1 && !opts.blank) S.sel = new Set([S.cur]);
+  S.selAnn = null;
+  if (!S.nameTouched && !opts.sample && !opts.blank) $('#fileName').value = name.replace(/\.pdf$/i, '') + '-edited.pdf';
+  refresh();
+  return fresh.length;
+}
+function sampleTouched(){
+  const sample = [...S.docs.values()].find(d => d.sample); if (!sample) return false;
+  const sp = S.pages.filter(p => p.docId === sample.id);
+  return sp.some(p => p.rot || p.anns.length) || sp.length !== sample.pdf.numPages || S.pages.length !== sp.length;
+}
+
+async function makeSample(){
+  const doc = await PDFDocument.create();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const grey = rgb(.38, .4, .45), ink = rgb(.1, .11, .14), blue = rgb(.12, .31, .85);
+  const A4 = [595.28, 841.89];
+  const foot = (pg, n, total) => { pg.drawText(`Sample document · page ${n} of ${total}`, { x: 56, y: 40, size: 9, font, color: grey }); };
+  // page 1
+  let pg = doc.addPage(A4);
+  pg.drawText('Sample document', { x: 56, y: 760, size: 28, font: bold, color: ink });
+  pg.drawText('This is a placeholder so the workbench is not empty.', { x: 56, y: 730, size: 12, font, color: grey });
+  const paras = [
+    'Open a PDF of your own with the button in the top left, or drop files anywhere in',
+    'this window. Each file you add appends its pages; you can then drag pages into a',
+    'new order, rotate or delete them, and insert blank pages or further PDFs wherever',
+    'you need them.',
+    '',
+    'The tools above the page add text, highlights, boxes, freehand strokes, white',
+    'cover-ups and images. Everything you add is drawn into the page when you export,',
+    'so any PDF reader will show it.',
+    '',
+    'Page 2 shows a small table. Page 3 is landscape, to show mixed page sizes.',
+  ];
+  paras.forEach((l, i) => pg.drawText(l, { x: 56, y: 690 - i * 18, size: 11.5, font, color: ink }));
+  pg.drawRectangle({ x: 56, y: 440, width: 483, height: 60, borderColor: blue, borderWidth: 1 });
+  pg.drawText('Try it: pick Highlight and drag across this box, then export.', { x: 70, y: 465, size: 12, font: bold, color: blue });
+  foot(pg, 1, 3);
+  // page 2
+  pg = doc.addPage(A4);
+  pg.drawText('Quarterly figures', { x: 56, y: 760, size: 20, font: bold, color: ink });
+  const rows = [['Quarter', 'Revenue', 'Costs', 'Margin'], ['Q1', '1,240', '980', '21%'], ['Q2', '1,410', '1,020', '28%'], ['Q3', '1,380', '1,050', '24%'], ['Q4', '1,620', '1,110', '31%']];
+  rows.forEach((r, ri) => {
+    const y = 720 - ri * 26;
+    if (ri === 0) pg.drawLine({ start: { x: 56, y: y - 8 }, end: { x: 539, y: y - 8 }, thickness: 1, color: ink });
+    r.forEach((c, ci) => pg.drawText(c, { x: 60 + ci * 120, y, size: 11, font: ri === 0 ? bold : font, color: ink }));
+  });
+  pg.drawText('Figures are illustrative.', { x: 56, y: 580, size: 10, font, color: grey });
+  foot(pg, 2, 3);
+  // page 3 landscape
+  pg = doc.addPage([841.89, 595.28]);
+  pg.drawText('Landscape page', { x: 56, y: 520, size: 20, font: bold, color: ink });
+  pg.drawText('Rotate this page with the arrows in the Pages panel, or drag it to the front.', { x: 56, y: 490, size: 12, font, color: grey });
+  pg.drawRectangle({ x: 56, y: 100, width: 730, height: 360, borderColor: grey, borderWidth: .75, borderDashArray: [4, 3] });
+  pg.drawText('Empty area for your own notes', { x: 320, y: 275, size: 12, font, color: grey });
+  foot(pg, 3, 3);
+  return doc.save();
+}
+
+async function makeBlank(w, h){
+  const doc = await PDFDocument.create(); doc.addPage([w, h]); return doc.save();
+}
+
+/* ---------------- thumbnails ---------------- */
+const thumbCache = new Map(); const thumbQueue = []; let thumbBusy = false;
+const thumbKey = p => p.docId + ':' + p.src + ':' + p.rot;
+function requestThumb(p, img){
+  const k = thumbKey(p);
+  if (thumbCache.has(k)) { img.src = thumbCache.get(k); return; }
+  if (!thumbQueue.some(q => q.k === k)) thumbQueue.push({ p, k });
+  pumpThumbs();
+}
+async function pumpThumbs(){
+  if (thumbBusy) return; thumbBusy = true;
+  while (thumbQueue.length) {
+    const { p, k } = thumbQueue.shift();
+    if (!thumbCache.has(k)) {
+      try {
+        const pg = await getPage(p);
+        const R = (pg.rotate + p.rot) % 360;
+        const base = pg.getViewport({ scale: 1, rotation: R });
+        const vp = pg.getViewport({ scale: 260 / Math.max(base.width, base.height), rotation: R });
+        const c = document.createElement('canvas'); c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+        await pg.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+        thumbCache.set(k, c.toDataURL('image/jpeg', .82));
+      } catch (e) { console.warn('thumb', e); continue; }
+    }
+    const url = thumbCache.get(k);
+    document.querySelectorAll(`img[data-tk="${k}"]`).forEach(i => { i.src = url; });
+  }
+  thumbBusy = false;
+}
+
+/* ---------------- page tiles ---------------- */
+function renderTiles(container){
+  container.innerHTML = '';
+  S.pages.forEach((p, i) => {
+    const doc = S.docs.get(p.docId);
+    const el = document.createElement('div');
+    el.className = 'tile' + (S.sel.has(p.uid) ? ' sel' : '') + (S.cur === p.uid ? ' cur' : '');
+    el.draggable = true; el.dataset.uid = p.uid; el.tabIndex = -1;
+    el.title = `${doc.name} · page ${p.src + 1}` + (p.rot ? ` · rotated ${p.rot}°` : '');
+    el.innerHTML = `<div class="thumbwrap"><img alt="" data-tk="${thumbKey(p)}"></div><div class="tilemeta"><span class="num mono">${i + 1}</span>${p.anns.length ? '<span class="dot" title="has annotations"></span>' : ''}${container.classList.contains('grid') ? `<span class="src">${escapeHtml(doc.blank ? 'blank' : doc.name)}</span>` : ''}</div>`;
+    requestThumb(p, el.querySelector('img'));
+    el.addEventListener('click', e => selectPage(p.uid, e));
+    el.addEventListener('dblclick', () => { selectPage(p.uid); setView('edit'); });
+    el.addEventListener('dragstart', e => onTileDragStart(e, p.uid, el));
+    el.addEventListener('dragover', e => onTileDragOver(e, el, container));
+    el.addEventListener('dragleave', () => el.classList.remove('ins-before', 'ins-after'));
+    el.addEventListener('drop', e => onTileDrop(e, p.uid, el, container));
+    el.addEventListener('dragend', () => { dragUids = null; el.classList.remove('dragging'); clearIns(); });
+    container.appendChild(el);
+  });
+}
+function renderTilesAll(){ renderTiles($('#tileList')); if (S.view === 'organize') renderTiles($('#tileGrid')); syncPagesHead(); }
+function syncTileClasses(){
+  document.querySelectorAll('.tile').forEach(el => { el.classList.toggle('sel', S.sel.has(el.dataset.uid)); el.classList.toggle('cur', S.cur === el.dataset.uid); });
+  syncPagesHead();
+}
+function syncPagesHead(){
+  const n = S.pages.length, k = S.sel.size;
+  $('#pageCount').textContent = k > 1 ? `${k} of ${n} selected` : `${n}`;
+  const idx = S.pages.findIndex(p => p.uid === S.cur);
+  $('#pageNav').textContent = n ? `${idx + 1} / ${n}` : '–';
+  $('#prevPage').disabled = idx <= 0; $('#nextPage').disabled = idx < 0 || idx >= n - 1;
+}
+function escapeHtml(s){ return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+function selectPage(uid, e){
+  const idx = S.pages.findIndex(p => p.uid === uid);
+  if (e && e.shiftKey && S.cur) {
+    const a = S.pages.findIndex(p => p.uid === S.cur), lo = Math.min(a, idx), hi = Math.max(a, idx);
+    for (let i = lo; i <= hi; i++) S.sel.add(S.pages[i].uid);
+  } else if (e && (e.metaKey || e.ctrlKey)) {
+    if (S.sel.has(uid)) S.sel.delete(uid); else S.sel.add(uid);
+  } else S.sel = new Set([uid]);
+  const changed = S.cur !== uid;
+  S.cur = uid; if (changed) S.selAnn = null;
+  S.zone = 'pages';
+  syncTileClasses(); if (changed) renderStage(); updateInspector();
+  const el = $('#tileList').querySelector(`[data-uid="${uid}"]`); if (el) el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+function gotoPage(delta){
+  const idx = S.pages.findIndex(p => p.uid === S.cur); const n = idx + delta;
+  if (n < 0 || n >= S.pages.length) return; selectPage(S.pages[n].uid);
+}
+
+/* drag reorder */
+let dragUids = null;
+function onTileDragStart(e, uid, el){
+  dragUids = S.sel.has(uid) ? S.pages.filter(p => S.sel.has(p.uid)).map(p => p.uid) : [uid];
+  e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', 'pages');
+  setTimeout(() => el.classList.add('dragging'), 0);
+}
+function insBefore(e, el, container){
+  const r = el.getBoundingClientRect();
+  return (container.classList.contains('grid') || narrow()) ? e.clientX < r.left + r.width / 2 : e.clientY < r.top + r.height / 2;
+}
+function onTileDragOver(e, el, container){
+  if (!dragUids) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+  const before = insBefore(e, el, container);
+  el.classList.toggle('ins-before', before); el.classList.toggle('ins-after', !before);
+}
+function clearIns(){ document.querySelectorAll('.tile.ins-before,.tile.ins-after').forEach(t => t.classList.remove('ins-before', 'ins-after')); }
+function onTileDrop(e, uid, el, container){
+  if (!dragUids) return; e.preventDefault(); e.stopPropagation();
+  const before = insBefore(e, el, container); clearIns();
+  movePages(dragUids, uid, before); dragUids = null;
+}
+function movePages(uids, targetUid, before){
+  const moving = new Set(uids);
+  if (moving.has(targetUid)) return;
+  const block = S.pages.filter(p => moving.has(p.uid));
+  const rest = S.pages.filter(p => !moving.has(p.uid));
+  let idx = targetUid == null ? rest.length : rest.findIndex(p => p.uid === targetUid);
+  if (targetUid != null && !before) idx++;
+  const next = [...rest.slice(0, idx), ...block, ...rest.slice(idx)];
+  if (next.every((p, i) => p === S.pages[i])) return;
+  commit(); S.pages = next; refresh();
+}
+for (const id of ['#tileList', '#tileGrid']) {
+  const c = $(id);
+  c.addEventListener('dragover', e => { if (dragUids) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } });
+  c.addEventListener('drop', e => { if (dragUids && !e.target.closest('.tile')) { e.preventDefault(); movePages(dragUids, null, false); dragUids = null; } });
+  c.addEventListener('pointerdown', () => { S.zone = 'pages'; });
+}
+
+/* ---------------- page operations ---------------- */
+function opRotate(d){ const t = targets(); if (!t.length) return; commit(); t.forEach(p => p.rot = (p.rot + d + 360) % 360); refresh(); }
+function opDelete(){
+  const t = targets(); if (!t.length) return;
+  if (t.length === S.pages.length && !confirm(`Delete all ${t.length} pages?`)) return;
+  commit();
+  const ids = new Set(t.map(p => p.uid));
+  const first = S.pages.findIndex(p => ids.has(p.uid));
+  S.pages = S.pages.filter(p => !ids.has(p.uid));
+  S.sel.clear(); S.cur = S.pages[Math.min(first, S.pages.length - 1)]?.uid || null;
+  if (S.cur) S.sel.add(S.cur); S.selAnn = null; refresh();
+}
+function opDuplicate(){
+  const t = targets(); if (!t.length) return; commit();
+  const last = S.pages.findIndex(p => p.uid === t[t.length - 1].uid);
+  const copies = t.map(p => { const c = JSON.parse(JSON.stringify(p)); c.uid = nid('p'); c.anns.forEach(a => a.id = nid()); return c; });
+  S.pages.splice(last + 1, 0, ...copies);
+  S.sel = new Set(copies.map(c => c.uid)); S.cur = copies[0].uid; S.selAnn = null; refresh();
+}
+function opMove(d){
+  const t = targets(); if (!t.length) return;
+  const ids = new Set(t.map(p => p.uid));
+  const idxs = S.pages.map((p, i) => ids.has(p.uid) ? i : -1).filter(i => i >= 0);
+  if (d < 0 && idxs[0] === 0) return; if (d > 0 && idxs[idxs.length - 1] === S.pages.length - 1) return;
+  commit();
+  if (d < 0) for (const i of idxs) [S.pages[i - 1], S.pages[i]] = [S.pages[i], S.pages[i - 1]];
+  else for (const i of idxs.slice().reverse()) [S.pages[i + 1], S.pages[i]] = [S.pages[i], S.pages[i + 1]];
+  refresh();
+}
+async function opBlank(){
+  let w = 595.28, h = 841.89;
+  const c = curPage();
+  if (c) { const pg = await getPage(c); const vp = pg.getViewport({ scale: 1, rotation: (pg.rotate + c.rot) % 360 }); w = vp.width; h = vp.height; }
+  const t = targets(); const at = t.length ? S.pages.findIndex(p => p.uid === t[t.length - 1].uid) + 1 : S.pages.length;
+  const bytes = await makeBlank(w, h);
+  await addDoc('Blank page', bytes, at, { blank: true });
+}
+function insertAfterIndex(){ const t = targets(); return t.length ? S.pages.findIndex(p => p.uid === t[t.length - 1].uid) + 1 : S.pages.length; }
+$('#opsbar').addEventListener('click', e => {
+  const b = e.target.closest('[data-op]'); if (!b) return;
+  const op = b.dataset.op;
+  if (op === 'rotl') opRotate(-90); else if (op === 'rotr') opRotate(90);
+  else if (op === 'up') opMove(-1); else if (op === 'down') opMove(1);
+  else if (op === 'dup') opDuplicate(); else if (op === 'del') opDelete();
+  else if (op === 'blank') opBlank();
+  else if (op === 'insert') { pendingInsertAt = insertAfterIndex(); $('#pdffile').click(); }
+});
+let pendingInsertAt = null;
+
+/* ---------------- stage ---------------- */
+let renderTask = null, stageBase = null, stageScale = 1, editing = null;
+async function renderStage(){
+  const p = curPage(); const sheet = $('#sheet'), stage = $('#stage'), canvas = $('#pagecanvas'), svg = $('#overlay');
+  closeTextEditor(false);
+  if (!p) { sheet.classList.remove('show'); stage.classList.add('empty'); $('#emptystate').hidden = false; stageBase = null; return; }
+  stage.classList.remove('empty'); $('#emptystate').hidden = true; sheet.classList.add('show');
+  const myUid = p.uid;
+  const pg = await getPage(p);
+  if (S.cur !== myUid) return;
+  const R = (pg.rotate + p.rot) % 360;
+  const base = pg.getViewport({ scale: 1, rotation: R });
+  const avail = Math.max(120, stage.clientWidth - (narrow() ? 16 : 48));
+  const scale = Math.max(.05, (avail / base.width) * S.zoom);
+  const vp = pg.getViewport({ scale, rotation: R });
+  let dpr = window.devicePixelRatio || 1; if (vp.width * vp.height * dpr * dpr > 12e6) dpr = Math.sqrt(12e6 / (vp.width * vp.height));
+  if (renderTask) { try { renderTask.cancel(); } catch (e) {} }
+  canvas.width = Math.floor(vp.width * dpr); canvas.height = Math.floor(vp.height * dpr);
+  canvas.style.width = vp.width + 'px'; canvas.style.height = vp.height + 'px';
+  sheet.style.width = vp.width + 'px'; sheet.style.height = vp.height + 'px';
+  svg.setAttribute('viewBox', `0 0 ${base.width} ${base.height}`); svg.style.width = vp.width + 'px'; svg.style.height = vp.height + 'px';
+  stageBase = base; stageScale = scale;
+  $('#zoomPct').textContent = Math.round(scale * 100) + '%';
+  drawAnns();
+  const task = pg.render({ canvasContext: canvas.getContext('2d'), viewport: vp, transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null });
+  renderTask = task;
+  try { await task.promise; } catch (e) { if (e && e.name !== 'RenderingCancelledException') console.warn(e); }
+  if (renderTask === task) renderTask = null;
+}
+
+function annEl(a){
+  const g = document.createElementNS(NS, 'g'); g.classList.add('ann'); g.dataset.id = a.id;
+  const mk = (t, attrs) => { const el = document.createElementNS(NS, t); for (const k in attrs) el.setAttribute(k, attrs[k]); g.appendChild(el); return el; };
+  switch (a.type) {
+    case 'text': {
+      const t = mk('text', { x: a.x, 'font-size': a.size, fill: a.color, 'font-family': 'Helvetica, Arial, sans-serif', style: 'white-space:pre' });
+      (a.text || ' ').split('\n').forEach((line, i) => { const ts = document.createElementNS(NS, 'tspan'); ts.setAttribute('x', a.x); ts.setAttribute('y', a.y + a.size * 0.8 + i * a.size * 1.2); ts.textContent = line || ' '; t.appendChild(ts); });
+      break; }
+    case 'rect': mk('rect', { x: a.x, y: a.y, width: a.w, height: a.h, fill: a.fill ? a.color : 'none', stroke: a.color, 'stroke-width': a.width }); break;
+    case 'highlight': mk('rect', { x: a.x, y: a.y, width: a.w, height: a.h, fill: a.color, 'fill-opacity': .38 }); break;
+    case 'whiteout': mk('rect', { x: a.x, y: a.y, width: a.w, height: a.h, fill: '#fff' }); break;
+    case 'ink': {
+      const pts = a.pts.map(p => p.join(',')).join(' ');
+      if (a.pts.length === 1) mk('circle', { cx: a.pts[0][0], cy: a.pts[0][1], r: a.width / 2, fill: a.color });
+      else mk('polyline', { points: pts, fill: 'none', stroke: a.color, 'stroke-width': a.width, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+      mk('polyline', { points: pts, class: 'hit', 'stroke-width': Math.max(a.width, 10 / stageScale) });
+      break; }
+    case 'image': mk('image', { x: a.x, y: a.y, width: a.w, height: a.h, href: a.data, preserveAspectRatio: 'none' }); break;
+  }
+  return g;
+}
+function drawAnns(){
+  const svg = $('#overlay'); const p = curPage(); svg.innerHTML = ''; if (!p) return;
+  for (const a of p.anns) { if (editing && editing.a === a) continue; svg.appendChild(annEl(a)); }
+  if (S.selAnn) {
+    const a = findAnn(S.selAnn); const el = svg.querySelector(`[data-id="${S.selAnn}"]`);
+    if (a && el) {
+      const b = el.getBBox(); const pad = 3 / stageScale;
+      const o = document.createElementNS(NS, 'rect'); o.setAttribute('class', 'sel-outline');
+      o.setAttribute('x', b.x - pad); o.setAttribute('y', b.y - pad); o.setAttribute('width', b.width + 2 * pad); o.setAttribute('height', b.height + 2 * pad); svg.appendChild(o);
+      if ('w' in a) { const hs = (coarse() ? 18 : 9) / stageScale; const h = document.createElementNS(NS, 'rect'); h.setAttribute('class', 'handle'); h.setAttribute('x', a.x + a.w - hs / 2); h.setAttribute('y', a.y + a.h - hs / 2); h.setAttribute('width', hs); h.setAttribute('height', hs); svg.appendChild(h); }
+    }
+  }
+}
+function svgPoint(e){ const svg = $('#overlay'); const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const r = pt.matrixTransform(svg.getScreenCTM().inverse()); return { x: r.x, y: r.y }; }
+function clampPt(pt){ if (!stageBase) return pt; return { x: Math.min(Math.max(pt.x, 0), stageBase.width), y: Math.min(Math.max(pt.y, 0), stageBase.height) }; }
+
+let drag = null, pendingImagePt = null;
+const overlay = $('#overlay');
+overlay.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return; const p = curPage(); if (!p || !stageBase) return;
+  S.zone = 'stage';
+  if (editing) { closeTextEditor(true); }
+  const pt = clampPt(svgPoint(e));
+  const hitEl = e.target.closest('.ann'); const handle = e.target.closest('.handle');
+  const cap = () => overlay.setPointerCapture(e.pointerId);
+  if (handle && S.selAnn) { const a = findAnn(S.selAnn); const pre = JSON.stringify(S.pages); commit(); drag = { kind: 'resize', a, start: pt, ow: a.w, oh: a.h, pre }; cap(); return; }
+  if (S.tool === 'select') {
+    if (hitEl) {
+      const a = findAnn(hitEl.dataset.id); S.selAnn = a.id; drawAnns(); updateInspector();
+      const pre = JSON.stringify(S.pages); commit();
+      drag = { kind: 'move', a, start: pt, orig: JSON.parse(JSON.stringify(a)), pre }; cap();
+    } else if (S.selAnn) { S.selAnn = null; drawAnns(); updateInspector(); }
+    return;
+  }
+  if (S.tool === 'text') {
+    if (hitEl) { const a = findAnn(hitEl.dataset.id); if (a.type === 'text') { S.selAnn = a.id; openTextEditor(a, false); return; } }
+    commit();
+    const a = { id: nid(), type: 'text', x: pt.x, y: pt.y - S.style.size * 0.6, size: S.style.size, color: S.style.color, text: '' };
+    p.anns.push(a); S.selAnn = a.id; drawAnns(); openTextEditor(a, true); return;
+  }
+  if (S.tool === 'rect' || S.tool === 'highlight' || S.tool === 'whiteout') {
+    commit();
+    const a = { id: nid(), type: S.tool, x: pt.x, y: pt.y, w: 0, h: 0, color: S.tool === 'highlight' ? S.style.hl : S.style.color, width: S.style.width, fill: S.style.fill };
+    p.anns.push(a); S.selAnn = null; drag = { kind: 'draw', a, start: pt }; cap(); drawAnns(); return;
+  }
+  if (S.tool === 'pen') {
+    commit();
+    const a = { id: nid(), type: 'ink', pts: [[pt.x, pt.y]], color: S.style.color, width: S.style.width };
+    p.anns.push(a); S.selAnn = null; drag = { kind: 'ink', a, last: pt }; cap(); drawAnns(); return;
+  }
+  if (S.tool === 'sign') { placeSignature(pt); return; }
+  if (S.tool === 'image') { pendingImagePt = pt; $('#imgfile').click(); }
+});
+overlay.addEventListener('pointermove', e => {
+  if (!drag) return; const pt = clampPt(svgPoint(e)); const a = drag.a;
+  const dx = pt.x - drag.start?.x, dy = pt.y - drag.start?.y;
+  if (drag.kind === 'move') {
+    if (a.type === 'ink') a.pts = drag.orig.pts.map(([x, y]) => [x + dx, y + dy]);
+    else { a.x = drag.orig.x + dx; a.y = drag.orig.y + dy; }
+  } else if (drag.kind === 'resize') {
+    a.w = Math.max(4, drag.ow + dx); a.h = Math.max(4, drag.oh + dy);
+    if (a.type === 'image' && !e.shiftKey) a.h = a.w * (drag.oh / drag.ow);
+  } else if (drag.kind === 'draw') {
+    a.x = Math.min(drag.start.x, pt.x); a.y = Math.min(drag.start.y, pt.y); a.w = Math.abs(pt.x - drag.start.x); a.h = Math.abs(pt.y - drag.start.y);
+  } else if (drag.kind === 'ink') {
+    if (Math.hypot(pt.x - drag.last.x, pt.y - drag.last.y) > 0.7) { a.pts.push([pt.x, pt.y]); drag.last = pt; }
+  }
+  drawAnns();
+});
+function endDrag(){
+  if (!drag) return; const p = curPage(); const a = drag.a;
+  if (drag.kind === 'draw' && (a.w < 2 || a.h < 2)) { p.anns = p.anns.filter(x => x !== a); S.undo.pop(); }
+  else if (drag.kind === 'draw' || drag.kind === 'ink') S.selAnn = a.id;
+  if ((drag.kind === 'move' || drag.kind === 'resize') && drag.pre === JSON.stringify(S.pages)) S.undo.pop();
+  drag = null; syncUndoButtons(); drawAnns(); updateInspector(); syncTileMeta();
+}
+overlay.addEventListener('pointerup', endDrag);
+overlay.addEventListener('pointercancel', endDrag);
+function syncTileMeta(){ renderTilesAll(); updateStatus(); scheduleSave(); }
+
+/* text editor overlay */
+const ed = $('#texted');
+function openTextEditor(a, isNew){
+  editing = { a, isNew, before: a.text };
+  ed.hidden = false;
+  ed.style.left = a.x * stageScale + 'px'; ed.style.top = a.y * stageScale + 'px';
+  ed.style.fontSize = a.size * stageScale + 'px'; ed.style.color = a.color;
+  ed.style.width = Math.max(120, (stageBase.width - a.x) * stageScale - 4) + 'px';
+  ed.value = a.text; autosize(); drawAnns();
+  setTimeout(() => { ed.focus(); ed.setSelectionRange(ed.value.length, ed.value.length); }, 0);
+}
+function autosize(){ ed.style.height = 'auto'; ed.style.height = (ed.scrollHeight + 2) + 'px'; }
+function closeTextEditor(keep){
+  if (!editing) return; const { a, isNew, before } = editing; const p = curPage();
+  const val = keep ? ed.value.replace(/\s+$/, '') : before;
+  editing = null; ed.hidden = true;
+  if (!val.trim()) { if (p) p.anns = p.anns.filter(x => x !== a); if (isNew) S.undo.pop(); S.selAnn = null; }
+  else if (val !== before) { if (!isNew) { S.undo.push(JSON.stringify(S.pages.map(pp => pp === p ? { ...pp, anns: pp.anns.map(x => x === a ? { ...a, text: before } : x) } : pp))); S.redo.length = 0; } a.text = val; }
+  else if (isNew) { /* unchanged new text with content: keep, undo entry stays */ }
+  syncUndoButtons(); drawAnns(); updateInspector(); syncTileMeta();
+}
+ed.addEventListener('input', autosize);
+ed.addEventListener('keydown', e => {
+  e.stopPropagation();
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); closeTextEditor(true); }
+  else if (e.key === 'Escape') { e.preventDefault(); closeTextEditor(false); }
+});
+ed.addEventListener('blur', () => { if (editing) closeTextEditor(true); });
+
+/* image placement */
+$('#imgfile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f || !pendingImagePt) return;
+  const p = curPage(); if (!p) return;
+  try {
+    const { data, w, h } = await loadImage(f);
+    commit();
+    const maxW = stageBase.width * .5; const sc = Math.min(1, maxW / w);
+    const a = { id: nid(), type: 'image', x: pendingImagePt.x, y: pendingImagePt.y, w: w * sc, h: h * sc, data };
+    p.anns.push(a); S.selAnn = a.id; drawAnns(); updateInspector(); syncTileMeta();
+  } catch (err) { toast('Could not read that image: ' + err.message); }
+  pendingImagePt = null;
+});
+function loadImage(file){
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file); const img = new Image();
+    img.onload = () => {
+      const max = 2200; const sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * sc); c.height = Math.round(img.naturalHeight * sc);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      const jpeg = /jpe?g/i.test(file.type);
+      res({ data: c.toDataURL(jpeg ? 'image/jpeg' : 'image/png', .9), w: c.width, h: c.height }); URL.revokeObjectURL(url);
+    };
+    img.onerror = () => rej(new Error('unsupported format')); img.src = url;
+  });
+}
+
+/* ---------------- tools & inspector ---------------- */
+const SWATCH = ['#D1201F', '#1F4FD8', '#178A4C', '#F0841A', '#FFE234', '#1A1D23'];
+function setTool(t){
+  S.tool = t; if (t !== 'select') { S.selAnn = null; drawAnns(); }
+  document.querySelectorAll('.tool').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
+  overlay.className.baseVal = 'tool-' + t;
+  updateInspector(); updateStatus();
+}
+$('#toolbar').addEventListener('click', e => { const b = e.target.closest('[data-tool]'); if (!b) return; if (b.dataset.tool === 'sign') chooseSign(); else setTool(b.dataset.tool); });
+function styleTarget(){ const a = S.selAnn ? findAnn(S.selAnn) : null; return a || null; }
+function currentColor(){ const a = styleTarget(); if (a && a.color) return a.color; return S.tool === 'highlight' ? S.style.hl : S.style.color; }
+function applyStyle(patch){
+  const a = styleTarget();
+  if (a) { commit(); Object.assign(a, patch); drawAnns(); syncTileMeta(); }
+  else { if ('color' in patch) { if (S.tool === 'highlight') S.style.hl = patch.color; else S.style.color = patch.color; } for (const k of ['size', 'width', 'fill']) if (k in patch) S.style[k] = patch[k]; }
+  updateInspector();
+}
+function updateInspector(){
+  const p = curPage(); const info = $('#pageInfo');
+  if (!p) info.innerHTML = '<dt>—</dt><dd>No page selected</dd>';
+  else {
+    const doc = S.docs.get(p.docId);
+    getPage(p).then(pg => {
+      if (curPage() !== p) return;
+      const vp = pg.getViewport({ scale: 1, rotation: (pg.rotate + p.rot) % 360 });
+      const mm = v => Math.round(v / 72 * 25.4);
+      const idx = S.pages.findIndex(x => x.uid === p.uid);
+      info.innerHTML = `<dt>Position</dt><dd class="mono">${idx + 1} of ${S.pages.length}</dd>
+        <dt>Source</dt><dd>${escapeHtml(doc.blank ? 'Blank page' : doc.name)}${doc.blank ? '' : ` <span class="mono">p.${p.src + 1}</span>`}${doc.sample ? ' <span class="badge">sample</span>' : ''}</dd>
+        <dt>Size</dt><dd class="mono">${Math.round(vp.width)} × ${Math.round(vp.height)} pt · ${mm(vp.width)} × ${mm(vp.height)} mm</dd>
+        <dt>Rotation</dt><dd class="mono">${p.rot ? `+${p.rot}°` : 'none'}${pg.rotate ? ` (file ${pg.rotate}°)` : ''}</dd>
+        <dt>Marks</dt><dd class="mono">${p.anns.length}</dd>`;
+    });
+  }
+  const a = styleTarget(); const t = a ? a.type : S.tool;
+  const names = { select: 'Selection', text: 'Text', highlight: 'Highlight', rect: 'Box', pen: 'Pen', ink: 'Pen stroke', whiteout: 'Whiteout', image: 'Image', sign: 'Signature' };
+  $('#styleTitle').textContent = a ? (a.sig ? 'Signature' : names[a.type] + ' annotation') : (S.tool === 'select' ? 'Tool style' : names[S.tool] + ' tool');
+  const showColor = a ? ['text', 'rect', 'highlight', 'ink'].includes(a.type) : ['text', 'rect', 'highlight', 'pen'].includes(S.tool);
+  $('#swatches').parentElement.parentElement.style.display = showColor ? '' : 'none';
+  const col = currentColor().toUpperCase();
+  $('#swatches').innerHTML = SWATCH.map(c => `<button class="sw${c === col ? ' on' : ''}" style="--c:${c}" data-c="${c}" title="${c}"></button>`).join('');
+  $('#colorPick').value = /^#[0-9A-F]{6}$/i.test(col) ? col : '#000000';
+  $('#fSize').style.display = (a ? a.type === 'text' : S.tool === 'text') ? '' : 'none';
+  $('#sizeRange').value = a && a.type === 'text' ? a.size : S.style.size; $('#sizeVal').textContent = (a && a.type === 'text' ? a.size : S.style.size) + ' pt';
+  const wid = a ? (a.type === 'rect' || a.type === 'ink') : (S.tool === 'rect' || S.tool === 'pen');
+  $('#fWidth').style.display = wid ? '' : 'none';
+  const wv = a && 'width' in a ? a.width : S.style.width; $('#widthRange').value = wv; $('#widthVal').textContent = wv + ' pt';
+  $('#fFill').style.display = (a ? a.type === 'rect' : S.tool === 'rect') ? '' : 'none';
+  $('#fillCheck').checked = a && a.type === 'rect' ? !!a.fill : S.style.fill;
+  $('#fText').style.display = a && a.type === 'text' ? '' : 'none';
+  if (a && a.type === 'text' && document.activeElement !== $('#textVal')) $('#textVal').value = a.text;
+  $('#annActions').style.display = a ? '' : 'none';
+  $('#fSig').style.display = (!a && S.tool === 'sign') ? '' : 'none';
+  $('#styleHint').textContent = a ? (a.type === 'image' ? 'Drag the corner handle to resize. Hold Shift to stretch it freely.' : ('w' in a ? 'Drag the corner handle to resize.' : '')) : (S.tool === 'select' ? 'Pick a tool above to add marks, or click a mark on the page to edit it.' : S.tool === 'sign' ? 'Click the page to place the selected signature.' : '');
+  $('#secStyle').style.display = (S.tool === 'select' && !a && !p) ? 'none' : '';
+  $('#btnExport').disabled = $('#btnExport2').disabled = !S.pages.length;
+  $('#btnExportSel').disabled = !S.sel.size; $('#btnExportSel').textContent = S.sel.size > 1 ? `Export ${S.sel.size} selected pages` : 'Export selected page only';
+  renderSources();
+}
+$('#swatches').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b) applyStyle({ color: b.dataset.c }); });
+$('#colorPick').addEventListener('input', e => applyStyle({ color: e.target.value.toUpperCase() }));
+$('#sizeRange').addEventListener('input', e => { const v = +e.target.value; const a = styleTarget(); if (a) { a.size = v; drawAnns(); $('#sizeVal').textContent = v + ' pt'; } else applyStyle({ size: v }); });
+$('#sizeRange').addEventListener('change', e => { if (styleTarget()) { const v = +e.target.value; S.undo.push(JSON.stringify(S.pages)); syncUndoButtons(); applyStyle({ size: v }); S.undo.pop(); } });
+$('#widthRange').addEventListener('input', e => { const v = +e.target.value; const a = styleTarget(); if (a) { a.width = v; drawAnns(); $('#widthVal').textContent = v + ' pt'; } else applyStyle({ width: v }); });
+$('#fillCheck').addEventListener('change', e => applyStyle({ fill: e.target.checked }));
+$('#textVal').addEventListener('input', e => { const a = styleTarget(); if (a && a.type === 'text') { a.text = e.target.value; drawAnns(); } });
+$('#textVal').addEventListener('change', () => { syncTileMeta(); });
+$('#btnDelAnn').addEventListener('click', deleteAnn);
+function deleteAnn(){ const p = curPage(); const a = styleTarget(); if (!p || !a) return; commit(); p.anns = p.anns.filter(x => x !== a); S.selAnn = null; drawAnns(); updateInspector(); syncTileMeta(); }
+
+function renderSources(){
+  const box = $('#srcs'); const docs = [...S.docs.values()].filter(d => !d.blank);
+  box.innerHTML = docs.map(d => { const n = S.pages.filter(p => p.docId === d.id).length; return `<div class="src"><span class="name" title="${escapeHtml(d.name)}">${escapeHtml(d.name)}</span><span class="n mono">${n}/${d.pdf.numPages}</span><button data-rm="${d.id}" title="Remove this file's pages"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>`; }).join('') || '<div class="hint">No files open.</div>';
+  const blanks = S.pages.filter(p => S.docs.get(p.docId).blank).length;
+  if (blanks) box.insertAdjacentHTML('beforeend', `<div class="src"><span class="name">Blank pages</span><span class="n mono">${blanks}</span></div>`);
+}
+$('#srcs').addEventListener('click', e => {
+  const b = e.target.closest('[data-rm]'); if (!b) return; const id = b.dataset.rm;
+  const n = S.pages.filter(p => p.docId === id).length;
+  if (n && !confirm(`Remove ${n} page${n === 1 ? '' : 's'} from ${S.docs.get(id).name}?`)) return;
+  commit(); S.pages = S.pages.filter(p => p.docId !== id); if (!S.pages.some(p => p.docId === id)) S.docs.get(id).unused = true;
+  S.sel.clear(); S.cur = S.pages[0]?.uid || null; if (S.cur) S.sel.add(S.cur); S.selAnn = null; refresh();
+});
+$('#btnClear').addEventListener('click', () => { if (!S.pages.length) return; if (!confirm('Remove all pages? The files stay in memory until you close the window; use Undo to bring them back.')) return; commit(); S.pages = []; S.sel.clear(); S.cur = null; S.selAnn = null; refresh(); });
+
+/* ---------------- views / zoom / refresh ---------------- */
+function setView(v){
+  S.view = v; $('#work').classList.toggle('organize', v === 'organize');
+  $('#viewEdit').classList.toggle('on', v === 'edit'); $('#viewOrganize').classList.toggle('on', v === 'organize');
+  const grid = $('#tileGrid'); grid.hidden = v !== 'organize';
+  $('#stage').style.display = v === 'organize' ? 'none' : ''; $('#toolbar').style.display = v === 'organize' ? 'none' : '';
+  const ops = $('#opsbar'); if (v === 'organize') { grid.before(ops); } else { $('#tileList').before(ops); }
+  if (v === 'organize') renderTiles(grid); else renderStage();
+}
+$('#viewEdit').addEventListener('click', () => setView('edit'));
+$('#viewOrganize').addEventListener('click', () => setView('organize'));
+function setZoom(z){ S.zoom = Math.min(6, Math.max(.15, z)); renderStage(); }
+$('#zoomIn').addEventListener('click', () => setZoom(S.zoom * 1.25));
+$('#zoomOut').addEventListener('click', () => setZoom(S.zoom / 1.25));
+$('#zoomFit').addEventListener('click', () => setZoom(1));
+$('#prevPage').addEventListener('click', () => gotoPage(-1));
+$('#nextPage').addEventListener('click', () => gotoPage(1));
+function refresh(){ renderTilesAll(); renderStage(); updateInspector(); updateStatus(); syncUndoButtons(); }
+let rsT; window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(renderStage, 120); });
+$('#stage').addEventListener('pointerdown', () => { S.zone = 'stage'; });
+
+/* ---------------- file inputs & drag/drop ---------------- */
+$('#btnOpen').addEventListener('click', () => { pendingInsertAt = null; $('#pdffile').click(); });
+$('#btnOpen2').addEventListener('click', () => { pendingInsertAt = null; $('#pdffile').click(); });
+$('#pdffile').addEventListener('change', async e => { const files = [...e.target.files]; e.target.value = ''; const at = pendingInsertAt; pendingInsertAt = null; await openFiles(files, at); });
+let dragDepth = 0;
+window.addEventListener('dragenter', e => { if ([...e.dataTransfer.types].includes('Files')) { dragDepth++; $('#dropzone').classList.add('show'); } });
+window.addEventListener('dragleave', () => { if (dragDepth > 0 && --dragDepth === 0) $('#dropzone').classList.remove('show'); });
+window.addEventListener('dragover', e => { if ([...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
+window.addEventListener('drop', e => { dragDepth = 0; $('#dropzone').classList.remove('show'); if (e.dataTransfer.files.length) { e.preventDefault(); openFiles(e.dataTransfer.files, null); } });
+$('#fileName').addEventListener('input', () => { S.nameTouched = true; scheduleSave(); });
+
+/* ---------------- keyboard ---------------- */
+document.addEventListener('keydown', e => {
+  const openM = document.querySelector('.modal:not([hidden])');
+  if (openM) { if (e.key === 'Escape') { if (openM.id === 'scanModal') scanClose(); else openM.hidden = true; } return; }
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea') return;
+  const meta = e.metaKey || e.ctrlKey;
+  if (meta && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
+  if (meta && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); return; }
+  if (meta && e.key.toLowerCase() === 'a') { e.preventDefault(); S.sel = new Set(S.pages.map(p => p.uid)); syncTileClasses(); updateInspector(); return; }
+  if (meta && e.key.toLowerCase() === 'o') { e.preventDefault(); $('#pdffile').click(); return; }
+  if (meta && e.key.toLowerCase() === 's') { e.preventDefault(); exportPdf(false); return; }
+  if (meta) return;
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    e.preventDefault();
+    if (S.selAnn && S.view === 'edit') deleteAnn(); else if (S.zone === 'pages' || S.view === 'organize') opDelete();
+    return;
+  }
+  if (e.key === 'Escape') { if (S.selAnn) { S.selAnn = null; drawAnns(); updateInspector(); } else setTool('select'); return; }
+  if (e.key.toLowerCase() === 's' && S.view === 'edit') { chooseSign(); return; }
+  const tools = { v: 'select', t: 'text', h: 'highlight', r: 'rect', p: 'pen', w: 'whiteout', i: 'image' };
+  if (tools[e.key.toLowerCase()] && S.view === 'edit') { setTool(tools[e.key.toLowerCase()]); return; }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); gotoPage(-1); }
+  else if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); gotoPage(1); }
+  else if (e.key === '+' || e.key === '=') setZoom(S.zoom * 1.25);
+  else if (e.key === '-') setZoom(S.zoom / 1.25);
+  else if (e.key === '0') setZoom(1);
+});
+$('#btnUndo').addEventListener('click', undo); $('#btnRedo').addEventListener('click', redo);
+
+/* ---------------- export ---------------- */
+const hex2rgb = h => { const m = /^#?([0-9a-f]{6})$/i.exec(h || '#000000'); const n = parseInt(m ? m[1] : '000000', 16); return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255); };
+async function getLib(doc){
+  if (!doc.lib) doc.lib = await PDFDocument.load(doc.bytes, { ignoreEncryption: true, updateMetadata: false });
+  return doc.lib;
+}
+function safeText(font, s){
+  return s.split('\n').map(line => { try { font.encodeText(line); return line; } catch (e) { return [...line].filter(ch => { try { font.encodeText(ch); return true; } catch (x) { return false; } }).join(''); } }).join('\n');
+}
+async function buildPdf(list){
+  const out = await PDFDocument.create();
+  out.setProducer('Paperknife'); out.setCreator('Paperknife');
+  const font = await out.embedFont(StandardFonts.Helvetica);
+  const byDoc = new Map();
+  list.forEach((p, i) => { if (!byDoc.has(p.docId)) byDoc.set(p.docId, []); byDoc.get(p.docId).push({ p, i }); });
+  const copied = new Array(list.length);
+  for (const [docId, entries] of byDoc) {
+    const src = await getLib(S.docs.get(docId));
+    const cps = await out.copyPages(src, entries.map(e => e.p.src));
+    entries.forEach((e, k) => copied[e.i] = cps[k]);
+  }
+  const imgCache = new Map();
+  for (let i = 0; i < list.length; i++) {
+    const p = list[i]; const page = copied[i]; out.addPage(page);
+    const pg = await getPage(p);
+    const R = ((pg.rotate + p.rot) % 360 + 360) % 360;
+    page.setRotation(degrees(R));
+    if (!p.anns.length) continue;
+    const vp = pg.getViewport({ scale: 1, rotation: R });
+    const to = (x, y) => vp.convertToPdfPoint(x, y);
+    for (const a of p.anns) {
+      const color = hex2rgb(a.color);
+      if (a.type === 'text') {
+        const [x, y] = to(a.x, a.y + a.size * 0.8);
+        page.drawText(safeText(font, a.text), { x, y, size: a.size, font, color, lineHeight: a.size * 1.2, rotate: degrees(R) });
+      } else if (a.type === 'rect' || a.type === 'highlight' || a.type === 'whiteout') {
+        const [x1, y1] = to(a.x, a.y), [x2, y2] = to(a.x + a.w, a.y + a.h);
+        const box = { x: Math.min(x1, x2), y: Math.min(y1, y2), width: Math.abs(x2 - x1), height: Math.abs(y2 - y1) };
+        if (a.type === 'rect') page.drawRectangle({ ...box, borderColor: color, borderWidth: a.width, color: a.fill ? color : undefined });
+        else if (a.type === 'highlight') page.drawRectangle({ ...box, color, opacity: .4, blendMode: BlendMode.Multiply });
+        else page.drawRectangle({ ...box, color: rgb(1, 1, 1) });
+      } else if (a.type === 'ink') {
+        if (a.pts.length === 1) { const [x, y] = to(a.pts[0][0], a.pts[0][1]); page.drawCircle({ x, y, size: a.width / 2, color }); }
+        for (let k = 0; k + 1 < a.pts.length; k++) {
+          const [x1, y1] = to(a.pts[k][0], a.pts[k][1]), [x2, y2] = to(a.pts[k + 1][0], a.pts[k + 1][1]);
+          page.drawLine({ start: { x: x1, y: y1 }, end: { x: x2, y: y2 }, thickness: a.width, color, lineCap: LineCapStyle.Round });
+        }
+      } else if (a.type === 'image') {
+        let img = imgCache.get(a.data);
+        if (!img) { const bytes = dataUrlBytes(a.data); img = a.data.startsWith('data:image/jpeg') ? await out.embedJpg(bytes) : await out.embedPng(bytes); imgCache.set(a.data, img); }
+        const [x, y] = to(a.x, a.y + a.h);
+        page.drawImage(img, { x, y, width: a.w, height: a.h, rotate: degrees(R) });
+      }
+    }
+  }
+  return out.save();
+}
+function fmtSize(n){ return n < 1048576 ? Math.max(1, Math.round(n / 1024)) + ' KB' : (n / 1048576).toFixed(2) + ' MB'; }
+function dataUrlBytes(u){ const b = atob(u.split(',')[1]); const arr = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i); return arr; }
+
+let downloadsNs = null, downloadsChecked = false;
+(async () => { try { if (window.claude && typeof window.claude.use === 'function') downloadsNs = await window.claude.use('downloads'); } catch (e) {} downloadsChecked = true; })();
+async function deliver(bytes, filename, noShare){
+  if (NATIVE) { nativeSend('save', filename, bytes); return; }
+  if (IS_IOS && !noShare && await shareFile(new File([bytes], filename, { type: 'application/pdf' }))) return;
+  const blob = new Blob([bytes], { type: 'application/pdf' });
+  if (window.claude && typeof window.claude.use === 'function') {
+    if (!downloadsChecked) { try { downloadsNs = await window.claude.use('downloads'); } catch (e) {} downloadsChecked = true; }
+    if (downloadsNs) {
+      try { await downloadsNs.save({ filename, data: blob }); toast('Saved ' + filename); }
+      catch (e) { if (e && e.code === 'declined') toast('Save cancelled.'); else if (e && e.code === 'rate_limited') toast('A save prompt is already open.'); else toast('Could not save: ' + (e && e.message || e)); }
+      return;
+    }
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+  toast(`Exported ${filename} (${fmtSize(bytes.length)}).` + (IN_CLAUDE ? ' If nothing was saved, this view cannot save files; use the installed app instead.' : ''), 4000);
+}
+let exporting = false;
+async function exportPdf(onlySelected){
+  if (exporting) return;
+  const list = onlySelected ? S.pages.filter(p => S.sel.has(p.uid)) : S.pages;
+  if (!list.length) { toast('Nothing to export.'); return; }
+  closeTextEditor(true);
+  let name = ($('#fileName').value || 'document.pdf').trim(); if (!/\.pdf$/i.test(name)) name += '.pdf';
+  if (onlySelected && list.length !== S.pages.length) name = name.replace(/\.pdf$/i, '') + (list.length === 1 ? `-p${S.pages.indexOf(list[0]) + 1}` : '-selection') + '.pdf';
+  exporting = true; busy(`Building ${name}…`); $('#btnExport').disabled = true;
+  try { const bytes = await buildPdf(list); busy(''); await deliver(bytes, name); }
+  catch (e) { console.error(e); toast('Export failed: ' + (e.message || e), 6000); }
+  finally { exporting = false; busy(''); $('#btnExport').disabled = !S.pages.length; }
+}
+$('#btnExport').addEventListener('click', () => exportPdf(false));
+$('#btnExport2').addEventListener('click', () => exportPdf(false));
+$('#btnExportSel').addEventListener('click', () => exportPdf(true));
+
+
+/* =====================================================================
+   v2 additions: environment, auto-save, signatures, scanning, sharing
+   ===================================================================== */
+const IN_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
+const NATIVE = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.pk) || null;
+const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const narrow = () => window.matchMedia('(max-width:900px)').matches;
+const coarse = () => window.matchMedia('(pointer:coarse)').matches;
+const HOSTED = /^https?:$/.test(location.protocol) && !IN_CLAUDE && !!document.querySelector('link[rel="manifest"]');
+const pageErrors = [];
+window.addEventListener('error', e => { pageErrors.push(String(e.message || e)); });
+window.addEventListener('unhandledrejection', e => { pageErrors.push('rejection: ' + String(e.reason && e.reason.message || e.reason)); });
+
+function openModal(sel){ $(sel).hidden = false; }
+function closeModal(sel){ $(sel).hidden = true; }
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-close]'); if (!c) return;
+  const m = c.closest('.modal'); if (!m) return;
+  if (m.id === 'scanModal') scanClose(); else m.hidden = true;
+});
+function isImageFile(f){ return /^image\//.test(f.type || '') || /\.(jpe?g|png|heic|heif|webp|gif|bmp|tiff?)$/i.test(f.name || ''); }
+function fileToImage(file){
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file); const img = new Image();
+    img.onload = () => { res(img); setTimeout(() => URL.revokeObjectURL(url), 4000); };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('unsupported image')); };
+    img.src = url;
+  });
+}
+function hexRgb(h){ const n = parseInt((/^#?([0-9a-f]{6})$/i.exec(h) || [0, '000000'])[1], 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function b64(bytes){ let s = ''; const CH = 0x8000; for (let i = 0; i < bytes.length; i += CH) s += String.fromCharCode.apply(null, bytes.subarray(i, i + CH)); return btoa(s); }
+function lsGet(k){ try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v){ try { localStorage.setItem(k, v); } catch (e) {} }
+
+/* ---------------- auto-save (IndexedDB, this device only) ---------------- */
+const DB = { p: null, ok: true, persistAsked: false };
+function dbOpen(){
+  if (DB.p) return DB.p;
+  DB.p = new Promise((res, rej) => {
+    let rq; try { rq = indexedDB.open('paperknife', 1); } catch (e) { rej(e); return; }
+    rq.onupgradeneeded = () => { const d = rq.result; if (!d.objectStoreNames.contains('docs')) d.createObjectStore('docs', { keyPath: 'id' }); if (!d.objectStoreNames.contains('kv')) d.createObjectStore('kv'); };
+    rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); rq.onblocked = () => rej(new Error('blocked'));
+  });
+  return DB.p;
+}
+function txDone(tx){ return new Promise((res, rej) => { tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error || new Error('aborted')); }); }
+function rqP(rq){ return new Promise((res, rej) => { rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); }); }
+async function kvGet(k){ const d = await dbOpen(); return rqP(d.transaction('kv').objectStore('kv').get(k)); }
+async function kvSet(k, v){ const d = await dbOpen(); const tx = d.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); return txDone(tx); }
+function setSaveState(text, err){ const el = $('#stSave'); el.textContent = text || ''; el.classList.toggle('err', !!err); }
+
+let saveT = null, saving = false, saveAgain = false, restoring = false;
+function scheduleSave(){
+  if (restoring || !DB.ok || !S.dirty) return;
+  clearTimeout(saveT); setSaveState('Saving…'); saveT = setTimeout(saveSession, 700);
+}
+async function saveSession(){
+  clearTimeout(saveT); saveT = null;
+  if (!S.dirty || !DB.ok) { if (DB.ok) setSaveState(''); return; }
+  if (saving) { saveAgain = true; return; }
+  saving = true;
+  try {
+    const d = await dbOpen();
+    const used = new Set(S.pages.map(p => p.docId));
+    const tx = d.transaction(['docs', 'kv'], 'readwrite'); const ds = tx.objectStore('docs');
+    for (const doc of S.docs.values()) if (used.has(doc.id) && !doc.stored) ds.put({ id: doc.id, name: doc.name, bytes: doc.bytes, sample: !!doc.sample, blank: !!doc.blank });
+    tx.objectStore('kv').put({ v: 1, pages: S.pages, cur: S.cur, seq, fileName: $('#fileName').value, nameTouched: S.nameTouched, style: S.style, savedAt: Date.now() }, 'session');
+    await txDone(tx);
+    for (const doc of S.docs.values()) if (used.has(doc.id)) doc.stored = true;
+    setSaveState('Saved on this device ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    if (!DB.persistAsked && navigator.storage && navigator.storage.persist) { DB.persistAsked = true; navigator.storage.persist().catch(() => {}); }
+  } catch (e) {
+    console.warn('autosave', e);
+    const full = e && e.name === 'QuotaExceededError';
+    setSaveState(full ? 'Auto-save failed: storage on this device is full' : 'Auto-save is not available here', true);
+    if (!full) DB.ok = false;
+  }
+  saving = false; if (saveAgain) { saveAgain = false; saveSession(); }
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden && saveT) saveSession(); });
+window.addEventListener('pagehide', () => { if (saveT) saveSession(); });
+
+function openPdfJs(name, bytes){
+  const task = pdfjsLib.getDocument({ data: bytes.slice() });
+  task.onPassword = (cb, reason) => { const pw = prompt((reason === 2 ? 'Wrong password for ' : 'Password for ') + name + ':'); if (pw == null) { task.destroy(); return; } cb(pw); };
+  return task.promise;
+}
+async function restoreSession(){
+  let sess;
+  try { sess = await kvGet('session'); }
+  catch (e) { DB.ok = false; setSaveState('Auto-save is not available here', true); return false; }
+  if (!sess || !Array.isArray(sess.pages)) return false;
+  restoring = true;
+  try {
+    const d = await dbOpen();
+    const all = await rqP(d.transaction('docs').objectStore('docs').getAll());
+    const used = new Set(sess.pages.map(p => p.docId)); const stale = [];
+    for (const rec of all) {
+      if (!used.has(rec.id)) { stale.push(rec.id); continue; }
+      try {
+        const bytes = rec.bytes instanceof Uint8Array ? rec.bytes : new Uint8Array(rec.bytes);
+        const pdf = await openPdfJs(rec.name, bytes);
+        S.docs.set(rec.id, { id: rec.id, name: rec.name, bytes, pdf, lib: null, sample: !!rec.sample, blank: !!rec.blank, stored: true });
+      } catch (e) { console.warn('restore doc', rec.name, e); }
+    }
+    S.pages = sess.pages.filter(p => S.docs.has(p.docId));
+    seq = Math.max(seq, sess.seq || 1);
+    S.cur = S.pages.some(p => p.uid === sess.cur) ? sess.cur : (S.pages[0] ? S.pages[0].uid : null);
+    S.sel = new Set(S.cur ? [S.cur] : []);
+    if (sess.style) Object.assign(S.style, sess.style);
+    if (sess.fileName) $('#fileName').value = sess.fileName;
+    S.nameTouched = !!sess.nameTouched; S.dirty = true;
+    if (stale.length) { const tx = d.transaction('docs', 'readwrite'); stale.forEach(id => tx.objectStore('docs').delete(id)); }
+    setSaveState('Picked up where you left off');
+  } finally { restoring = false; }
+  refresh();
+  return true;
+}
+
+/* ---------------- shared image helpers ---------------- */
+function otsu(lum){
+  const hist = new Uint32Array(256); for (let i = 0; i < lum.length; i++) hist[lum[i]]++;
+  const total = lum.length; let sum = 0; for (let i = 0; i < 256; i++) sum += i * hist[i];
+  let sumB = 0, wB = 0, best = 0, thr = 127;
+  for (let t = 0; t < 256; t++) {
+    wB += hist[t]; if (!wB) continue; const wF = total - wB; if (!wF) break;
+    sumB += t * hist[t]; const mB = sumB / wB, mF = (sum - sumB) / wF; const v = wB * wF * (mB - mF) * (mB - mF);
+    if (v > best) { best = v; thr = t; }
+  }
+  return thr;
+}
+function boxMean(a, w, h, r){
+  const W1 = w + 1; const integ = new Float64Array(W1 * (h + 1));
+  for (let y = 0; y < h; y++) { let row = 0; for (let x = 0; x < w; x++) { row += a[y * w + x]; integ[(y + 1) * W1 + x + 1] = integ[y * W1 + x + 1] + row; } }
+  const out = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) { const y0 = Math.max(0, y - r), y1 = Math.min(h, y + r + 1); for (let x = 0; x < w; x++) { const x0 = Math.max(0, x - r), x1 = Math.min(w, x + r + 1); out[y * w + x] = (integ[y1 * W1 + x1] - integ[y0 * W1 + x1] - integ[y1 * W1 + x0] + integ[y0 * W1 + x0]) / ((x1 - x0) * (y1 - y0)); } }
+  return out;
+}
+/* Divide out uneven lighting: the paper ends up near 225 everywhere, ink stays dark. */
+function flatten(lum, w, h){
+  const k = 4, sw = Math.ceil(w / k), sh = Math.ceil(h / k);
+  const small = new Float32Array(sw * sh), cnt = new Uint16Array(sw * sh);
+  for (let y = 0; y < h; y++) { const sy = (y / k) | 0; for (let x = 0; x < w; x++) { const i = sy * sw + ((x / k) | 0); small[i] += lum[y * w + x]; cnt[i]++; } }
+  for (let i = 0; i < small.length; i++) small[i] /= cnt[i] || 1;
+  const mean = boxMean(small, sw, sh, Math.max(6, Math.round(Math.max(sw, sh) / 12)));
+  let g = 0; for (let i = 0; i < mean.length; i++) g += mean[i]; g /= mean.length || 1;
+  const floor = Math.max(1, g * 0.55);
+  const out = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) { const sy = (y / k) | 0; for (let x = 0; x < w; x++) { const m = Math.max(mean[sy * sw + ((x / k) | 0)], floor); const v = lum[y * w + x] / m * 225; out[y * w + x] = v > 255 ? 255 : v; } }
+  return out;
+}
+function lumOf(data, n){ const lum = new Uint8Array(n); for (let i = 0, j = 0; i < n; i++, j += 4) lum[i] = (data[j] * 299 + data[j + 1] * 587 + data[j + 2] * 114) / 1000; return lum; }
+function trimCanvas(c, padPx){
+  const ctx = c.getContext('2d'); const w = c.width, h = c.height; const d = ctx.getImageData(0, 0, w, h).data;
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { if (d[(y * w + x) * 4 + 3] > 14) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } }
+  if (x1 < 0) return null;
+  x0 = Math.max(0, x0 - padPx); y0 = Math.max(0, y0 - padPx); x1 = Math.min(w - 1, x1 + padPx); y1 = Math.min(h - 1, y1 + padPx);
+  const o = document.createElement('canvas'); o.width = x1 - x0 + 1; o.height = y1 - y0 + 1;
+  o.getContext('2d').drawImage(c, x0, y0, o.width, o.height, 0, 0, o.width, o.height); return o;
+}
+function capWidth(c, max){
+  if (c.width <= max) return c;
+  const o = document.createElement('canvas'); o.width = max; o.height = Math.max(1, Math.round(c.height * max / c.width));
+  o.getContext('2d').drawImage(c, 0, 0, o.width, o.height); return o;
+}
+
+/* ---------------- signatures ---------------- */
+const SIG = { list: [], active: null, strokes: [], ink: '#14161C', tab: 'draw', font: 0, photo: null };
+const SIG_INKS = ['#14161C', '#1B3FA8', '#0B5D3B'];
+const SIG_FONTS = [
+  { css: '"Dancing Script","Snell Roundhand","Apple Chancery",cursive', w: 600 },
+  { css: '"Caveat","Bradley Hand","Noteworthy",cursive', w: 500 },
+  { css: '"Snell Roundhand","Savoye LET","Dancing Script",cursive', w: 400 },
+];
+const activeSig = () => SIG.list.find(s => s.id === SIG.active) || null;
+async function sigLoad(){
+  try { SIG.list = (await kvGet('signatures')) || []; SIG.active = (await kvGet('activeSig')) || null; } catch (e) { SIG.list = []; }
+  if (!SIG.list.some(s => s.id === SIG.active)) SIG.active = SIG.list[0] ? SIG.list[0].id : null;
+}
+function sigPersist(){ kvSet('signatures', SIG.list).catch(() => {}); kvSet('activeSig', SIG.active).catch(() => {}); }
+function sigChipHtml(s, del){ return `<button class="sigchip${s.id === SIG.active ? ' on' : ''}" data-sig="${s.id}" title="Use this signature"><img src="${s.data}" alt="Saved signature">${del ? `<span class="x" data-del="${s.id}" title="Delete this signature">×</span>` : ''}</button>`; }
+function renderSigLists(){
+  $('#sigList').innerHTML = SIG.list.map(s => sigChipHtml(s, true)).join('');
+  $('#sigSavedBox').hidden = !SIG.list.length;
+  $('#sigQuick').innerHTML = SIG.list.map(s => sigChipHtml(s, false)).join('') || '<span class="hint">No signature saved yet.</span>';
+}
+function sigListClick(e){
+  const del = e.target.closest('[data-del]');
+  if (del) { e.stopPropagation(); SIG.list = SIG.list.filter(s => s.id !== del.dataset.del); if (!activeSig()) SIG.active = SIG.list[0] ? SIG.list[0].id : null; sigPersist(); renderSigLists(); if (!activeSig() && S.tool === 'sign') setTool('select'); return; }
+  const chip = e.target.closest('[data-sig]'); if (!chip) return;
+  SIG.active = chip.dataset.sig; sigPersist(); renderSigLists(); closeModal('#sigModal'); setTool('sign');
+  toast(coarse() ? 'Tap the page where the signature should go.' : 'Click the page where the signature should go.');
+}
+$('#sigList').addEventListener('click', sigListClick);
+$('#sigQuick').addEventListener('click', sigListClick);
+
+const pad = $('#sigPad'); let padCtx = null, padStroke = null;
+function strokePath(ctx, pts){
+  ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+  if (pts.length === 1) ctx.lineTo(pts[0][0] + 0.01, pts[0][1]);
+  for (let i = 1; i < pts.length - 1; i++) { const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2; ctx.quadraticCurveTo(pts[i][0], pts[i][1], mx, my); }
+  if (pts.length > 1) { const l = pts[pts.length - 1]; ctx.lineTo(l[0], l[1]); }
+  ctx.stroke();
+}
+function padDraw(){
+  if (!padCtx) return; const r = pad.getBoundingClientRect();
+  padCtx.clearRect(0, 0, r.width, r.height); padCtx.lineCap = 'round'; padCtx.lineJoin = 'round'; padCtx.lineWidth = 2.6; padCtx.strokeStyle = SIG.ink;
+  for (const s of SIG.strokes) strokePath(padCtx, s);
+}
+function padSetup(){
+  const r = pad.getBoundingClientRect(); if (!r.width) return; const k = window.devicePixelRatio || 1;
+  pad.width = Math.round(r.width * k); pad.height = Math.round(r.height * k);
+  padCtx = pad.getContext('2d'); padCtx.setTransform(k, 0, 0, k, 0, 0); padDraw();
+}
+pad.addEventListener('pointerdown', e => {
+  e.preventDefault(); if (!padCtx) padSetup(); try { pad.setPointerCapture(e.pointerId); } catch (x) {}
+  const r = pad.getBoundingClientRect(); padStroke = [[e.clientX - r.left, e.clientY - r.top]]; SIG.strokes.push(padStroke); padDraw();
+});
+pad.addEventListener('pointermove', e => {
+  if (!padStroke) return; const r = pad.getBoundingClientRect();
+  const evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || []; for (const c of (evs.length ? evs : [e])) padStroke.push([c.clientX - r.left, c.clientY - r.top]);
+  padDraw();
+});
+const padEnd = () => { padStroke = null; };
+pad.addEventListener('pointerup', padEnd); pad.addEventListener('pointercancel', padEnd);
+
+function sigFromDraw(){
+  if (!SIG.strokes.length) return null;
+  const r = pad.getBoundingClientRect(); const k = 3; const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round((r.width || 520) * k)); c.height = Math.max(1, Math.round((r.height || 190) * k));
+  const ctx = c.getContext('2d'); ctx.setTransform(k, 0, 0, k, 0, 0); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 2.6; ctx.strokeStyle = SIG.ink;
+  for (const s of SIG.strokes) strokePath(ctx, s);
+  return trimCanvas(c, 6);
+}
+async function sigFromType(){
+  const txt = $('#sigText').value.trim(); if (!txt) return null;
+  const f = SIG_FONTS[SIG.font]; const font = `${f.w} 120px ${f.css}`;
+  try { await Promise.race([document.fonts.load(font, txt), new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
+  const m = document.createElement('canvas').getContext('2d'); m.font = font;
+  const c = document.createElement('canvas'); c.width = Math.ceil(m.measureText(txt).width) + 160; c.height = 320;
+  const ctx = c.getContext('2d'); ctx.font = font; ctx.fillStyle = SIG.ink; ctx.textBaseline = 'middle'; ctx.fillText(txt, 80, 160);
+  return trimCanvas(c, 6);
+}
+async function sigPhotoLoad(file){
+  const img = await fileToImage(file);
+  const sc = Math.min(1, 1100 / Math.max(img.naturalWidth, img.naturalHeight));
+  const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.naturalWidth * sc)); c.height = Math.max(1, Math.round(img.naturalHeight * sc));
+  const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, c.width, c.height);
+  const lum = flatten(lumOf(ctx.getImageData(0, 0, c.width, c.height).data, c.width * c.height), c.width, c.height);
+  SIG.photo = { w: c.width, h: c.height, lum, out: document.createElement('canvas') };
+  $('#sigThr').value = 150; $('#sigThrBox').hidden = false; sigPhotoRender();
+}
+function sigPhotoRender(){
+  const p = SIG.photo; if (!p) return; const thr = +$('#sigThr').value, soft = 42;
+  const o = p.out; o.width = p.w; o.height = p.h; const ctx = o.getContext('2d'); const im = ctx.createImageData(p.w, p.h); const [r, g, b] = hexRgb(SIG.ink);
+  for (let i = 0, j = 0; i < p.lum.length; i++, j += 4) { let a = (thr - p.lum[i]) / soft; a = a < 0 ? 0 : a > 1 ? 1 : a; im.data[j] = r; im.data[j + 1] = g; im.data[j + 2] = b; im.data[j + 3] = a * 255; }
+  ctx.putImageData(im, 0, 0);
+  const prev = $('#sigPhotoPrev'); prev.hidden = false; prev.width = p.w; prev.height = p.h;
+  const pc = prev.getContext('2d'); pc.fillStyle = '#fff'; pc.fillRect(0, 0, p.w, p.h); pc.drawImage(o, 0, 0);
+}
+function sigTab(t){
+  SIG.tab = t;
+  document.querySelectorAll('#sigTabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  document.querySelectorAll('#sigModal [data-pane]').forEach(p => { p.hidden = p.dataset.pane !== t; });
+  $('#sigClear').hidden = t !== 'draw';
+  if (t === 'draw') padSetup(); if (t === 'type') sigFontsRender();
+}
+function sigFontsRender(){
+  const txt = $('#sigText').value.trim() || 'Your name';
+  $('#sigFonts').innerHTML = SIG_FONTS.map((f, i) => `<button class="fontopt${i === SIG.font ? ' on' : ''}" data-font="${i}" style="font-family:${f.css.replace(/"/g, '&quot;')};font-weight:${f.w};color:${SIG.ink}">${escapeHtml(txt)}</button>`).join('');
+}
+function sigInkRender(){ $('#sigInk').innerHTML = SIG_INKS.map(c => `<button class="sw${c === SIG.ink ? ' on' : ''}" style="--c:${c}" data-ink="${c}" title="Ink color"></button>`).join(''); }
+function openSigModal(){ renderSigLists(); sigInkRender(); openModal('#sigModal'); sigTab(SIG.tab); }
+$('#sigTabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) sigTab(b.dataset.tab); });
+$('#sigInk').addEventListener('click', e => { const b = e.target.closest('[data-ink]'); if (!b) return; SIG.ink = b.dataset.ink; sigInkRender(); padDraw(); sigFontsRender(); sigPhotoRender(); });
+$('#sigClear').addEventListener('click', () => { SIG.strokes = []; padDraw(); });
+$('#sigText').addEventListener('input', sigFontsRender);
+$('#sigFonts').addEventListener('click', e => { const b = e.target.closest('[data-font]'); if (b) { SIG.font = +b.dataset.font; sigFontsRender(); } });
+$('#sigPhotoBtn').addEventListener('click', () => $('#sigPhotoFile').click());
+$('#sigPhotoFile').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; try { await sigPhotoLoad(f); } catch (err) { toast('Could not read that photo.'); } });
+$('#sigThr').addEventListener('input', sigPhotoRender);
+async function sigCreate(){
+  let c = SIG.tab === 'draw' ? sigFromDraw() : SIG.tab === 'type' ? await sigFromType() : (SIG.photo ? trimCanvas(SIG.photo.out, 6) : null);
+  if (!c) { toast(SIG.tab === 'draw' ? 'Draw your signature in the box first.' : SIG.tab === 'type' ? 'Type your name first.' : 'Choose a photo first.'); return null; }
+  c = capWidth(c, 900);
+  const s = { id: 's' + Date.now().toString(36) + (seq++), data: c.toDataURL('image/png'), w: c.width, h: c.height };
+  SIG.list.unshift(s); if (SIG.list.length > 8) SIG.list.length = 8;
+  SIG.active = s.id; sigPersist(); renderSigLists();
+  SIG.strokes = []; padDraw();
+  return s;
+}
+$('#sigSave').addEventListener('click', async () => {
+  const s = await sigCreate(); if (!s) return;
+  closeModal('#sigModal'); setTool('sign');
+  toast(coarse() ? 'Signature saved. Tap the page to place it.' : 'Signature saved. Click the page to place it.');
+});
+$('#btnSigManage').addEventListener('click', openSigModal);
+function chooseSign(){
+  if (S.view !== 'edit') setView('edit');
+  if (!activeSig() || S.tool === 'sign') { openSigModal(); return; }
+  setTool('sign');
+}
+function placeSignature(pt){
+  const s = activeSig(); const p = curPage(); if (!s || !p || !stageBase) return null;
+  commit();
+  const w = Math.min(190, stageBase.width * 0.36), h = w * s.h / s.w;
+  const a = { id: nid(), type: 'image', sig: true, x: pt.x - w / 2, y: pt.y - h / 2, w, h, data: s.data };
+  a.x = Math.max(0, Math.min(a.x, stageBase.width - w)); a.y = Math.max(0, Math.min(a.y, stageBase.height - h));
+  p.anns.push(a); setTool('select'); S.selAnn = a.id; drawAnns(); updateInspector(); syncTileMeta();
+  return a;
+}
+
+/* ---------------- scanning ---------------- */
+const SCAN = { queue: [], batch: [], work: null, quad: null, filter: 'doc', dragging: -1 };
+function polyArea(q){ let a = 0; for (let i = 0; i < q.length; i++) { const p = q[i], n = q[(i + 1) % q.length]; a += p[0] * n[1] - n[0] * p[1]; } return a / 2; }
+/* Finds the page as the largest bright region and returns its four corners (TL, TR, BR, BL). Falls back to the whole photo. */
+function detectQuad(c){
+  const W = c.width, H = c.height; const full = [[0, 0], [W, 0], [W, H], [0, H]];
+  try {
+    const k = Math.min(1, 300 / Math.max(W, H)); const w = Math.max(8, Math.round(W * k)), h = Math.max(8, Math.round(H * k));
+    const s = document.createElement('canvas'); s.width = w; s.height = h; const ctx = s.getContext('2d', { willReadFrequently: true }); ctx.drawImage(c, 0, 0, w, h);
+    const lum = lumOf(ctx.getImageData(0, 0, w, h).data, w * h); const thr = otsu(lum);
+    const lab = new Int32Array(w * h), stack = new Int32Array(w * h); let bestN = 0, bestL = 0, L = 0;
+    for (let i = 0; i < lum.length; i++) {
+      if (lum[i] <= thr || lab[i]) continue;
+      L++; let n = 0, sp = 0; stack[sp++] = i; lab[i] = L;
+      while (sp) {
+        const q = stack[--sp]; n++; const x = q % w, y = (q / w) | 0;
+        if (x > 0 && !lab[q - 1] && lum[q - 1] > thr) { lab[q - 1] = L; stack[sp++] = q - 1; }
+        if (x < w - 1 && !lab[q + 1] && lum[q + 1] > thr) { lab[q + 1] = L; stack[sp++] = q + 1; }
+        if (y > 0 && !lab[q - w] && lum[q - w] > thr) { lab[q - w] = L; stack[sp++] = q - w; }
+        if (y < h - 1 && !lab[q + w] && lum[q + w] > thr) { lab[q + w] = L; stack[sp++] = q + w; }
+      }
+      if (n > bestN) { bestN = n; bestL = L; }
+    }
+    const frac = bestN / (w * h); if (frac < 0.12 || frac > 0.96) return full;
+    let tl, tr, br, bl, mTL = Infinity, mBR = -Infinity, mTR = -Infinity, mBL = Infinity;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      if (lab[y * w + x] !== bestL) continue; const a = x + y, b = x - y;
+      if (a < mTL) { mTL = a; tl = [x, y]; } if (a > mBR) { mBR = a; br = [x + 1, y + 1]; }
+      if (b > mTR) { mTR = b; tr = [x + 1, y]; } if (b < mBL) { mBL = b; bl = [x, y + 1]; }
+    }
+    const quad = [tl, tr, br, bl].map(p => [Math.min(W, p[0] / k), Math.min(H, p[1] / k)]);
+    const area = Math.abs(polyArea(quad)); if (area < 0.1 * W * H) return full;
+    if ((bestN / (k * k)) / area < 0.7) return full;
+    return quad;
+  } catch (e) { return full; }
+}
+/* Straightens the quadrilateral into a rectangle (projective mapping, bilinear sampling). */
+function warpQuad(src, quad){
+  const [p0, p1, p2, p3] = quad; const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  let W = Math.max(dist(p0, p1), dist(p3, p2)), H = Math.max(dist(p0, p3), dist(p1, p2));
+  if (W < 8 || H < 8) throw new Error('The selected area is too small.');
+  const cap = 2200 / Math.max(W, H); if (cap < 1) { W *= cap; H *= cap; }
+  const A = Math.SQRT2, r = H / W; if (Math.abs(r / A - 1) < 0.07) H = W * A; else if (Math.abs(1 / r / A - 1) < 0.07) W = H * A;
+  W = Math.round(W); H = Math.round(H);
+  const sw = src.width, sh = src.height; const s = src.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, sw, sh).data;
+  const x0 = p0[0], y0 = p0[1], x1 = p1[0], y1 = p1[1], x2 = p2[0], y2 = p2[1], x3 = p3[0], y3 = p3[1];
+  const dx1 = x1 - x2, dx2 = x3 - x2, sx = x0 - x1 + x2 - x3, dy1 = y1 - y2, dy2 = y3 - y2, sy = y0 - y1 + y2 - y3;
+  let a, b, c, d, e, f, g, h;
+  if (Math.abs(sx) < 1e-9 && Math.abs(sy) < 1e-9) { a = x1 - x0; b = x2 - x1; c = x0; d = y1 - y0; e = y2 - y1; f = y0; g = 0; h = 0; }
+  else { const det = dx1 * dy2 - dx2 * dy1; g = (sx * dy2 - dx2 * sy) / det; h = (dx1 * sy - sx * dy1) / det; a = x1 - x0 + g * x1; b = x3 - x0 + h * x3; c = x0; d = y1 - y0 + g * y1; e = y3 - y0 + h * y3; f = y0; }
+  const out = new ImageData(W, H); const o = out.data; const mx = sw - 1.001, my = sh - 1.001;
+  for (let j = 0; j < H; j++) {
+    const v = (j + 0.5) / H;
+    for (let i = 0; i < W; i++) {
+      const u = (i + 0.5) / W; const den = g * u + h * v + 1;
+      let fx = (a * u + b * v + c) / den - 0.5, fy = (d * u + e * v + f) / den - 0.5;
+      if (fx < 0) fx = 0; else if (fx > mx) fx = mx; if (fy < 0) fy = 0; else if (fy > my) fy = my;
+      const ix = fx | 0, iy = fy | 0, tx = fx - ix, ty = fy - iy;
+      const i00 = (iy * sw + ix) * 4, i10 = i00 + 4, i01 = i00 + sw * 4, i11 = i01 + 4;
+      const w00 = (1 - tx) * (1 - ty), w10 = tx * (1 - ty), w01 = (1 - tx) * ty, w11 = tx * ty; const q = (j * W + i) * 4;
+      o[q] = s[i00] * w00 + s[i10] * w10 + s[i01] * w01 + s[i11] * w11;
+      o[q + 1] = s[i00 + 1] * w00 + s[i10 + 1] * w10 + s[i01 + 1] * w01 + s[i11 + 1] * w11;
+      o[q + 2] = s[i00 + 2] * w00 + s[i10 + 2] * w10 + s[i01 + 2] * w01 + s[i11 + 2] * w11;
+      o[q + 3] = 255;
+    }
+  }
+  return out;
+}
+function scanFilter(img, mode){
+  if (mode === 'color') return img;
+  const d = img.data, n = img.width * img.height; let out = lumOf(d, n);
+  if (mode === 'doc') { out = flatten(out, img.width, img.height); for (let i = 0; i < n; i++) { const t = (out[i] - 120) / 92; out[i] = t <= 0 ? 0 : t >= 1 ? 255 : t * t * (3 - 2 * t) * 255; } }
+  for (let i = 0, j = 0; i < n; i++, j += 4) { d[j] = d[j + 1] = d[j + 2] = out[i]; }
+  return img;
+}
+function scanShow(which){
+  $('#scanStart').hidden = which !== 'start'; $('#scanEdit').hidden = which !== 'edit';
+  $('#scanAdd').hidden = which !== 'edit'; $('#scanSkip').hidden = which !== 'edit';
+  const n = SCAN.batch.length;
+  $('#scanDone').hidden = !(which === 'start' && n);
+  $('#scanDone').textContent = n === 1 ? 'Done, add 1 page' : `Done, add ${n} pages`;
+  $('#scanCount').textContent = n ? `${n} page${n === 1 ? '' : 's'} ready` : '';
+  $('#scanStartMsg').textContent = n ? 'Add another page, or finish.' : 'Photograph a page, or pick photos you already have. Each one becomes a straightened PDF page.';
+}
+function scanOpen(){
+  SCAN.batch = []; SCAN.queue = []; SCAN.work = null;
+  const cam = coarse() || IS_IOS || /Android/.test(navigator.userAgent);
+  $('#scanCamBtn').hidden = !cam;
+  $('#scanPickBtn').classList.toggle('primary', !cam);
+  $('#scanHint').textContent = cam ? '' : 'Dropping image files onto the window works too. On your phone, this dialog opens the camera.';
+  scanShow('start'); openModal('#scanModal');
+}
+function scanEnqueue(files){
+  const imgs = [...files].filter(isImageFile); if (!imgs.length) return;
+  if ($('#scanModal').hidden) scanOpen();
+  SCAN.queue.push(...imgs); if (!SCAN.work) scanNext();
+}
+async function scanNext(){
+  const f = SCAN.queue.shift();
+  if (!f) { SCAN.work = null; scanShow('start'); return; }
+  try {
+    const img = await fileToImage(f);
+    const sc = Math.min(1, 2400 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.naturalWidth * sc)); c.height = Math.max(1, Math.round(img.naturalHeight * sc));
+    c.getContext('2d', { willReadFrequently: true }).drawImage(img, 0, 0, c.width, c.height);
+    SCAN.work = c; SCAN.quad = detectQuad(c); scanShow('edit'); scanPaint();
+  } catch (e) { toast('Could not read ' + (f.name || 'that image') + '.'); scanNext(); }
+}
+function scanPaint(){
+  const c = $('#scanCanvas'), w = SCAN.work; c.width = w.width; c.height = w.height; c.getContext('2d').drawImage(w, 0, 0);
+  $('#scanQuad').setAttribute('viewBox', `0 0 ${w.width} ${w.height}`); scanQuadDraw();
+  const left = SCAN.queue.length; $('#scanAdd').textContent = left ? `Add page (${left} more to go)` : 'Add page';
+}
+function scanQuadDraw(){
+  const svg = $('#scanQuad'), q = SCAN.quad; const r = svg.getBoundingClientRect(); const k = r.width ? SCAN.work.width / r.width : 2;
+  const rad = (coarse() ? 15 : 9) * k;
+  svg.innerHTML = `<polygon points="${q.map(p => p.join(',')).join(' ')}"/>` + q.map((p, i) => `<circle cx="${p[0]}" cy="${p[1]}" r="${rad}" data-i="${i}"/>`).join('');
+}
+const sq = $('#scanQuad');
+function sqPoint(e){ const r = sq.getBoundingClientRect(), w = SCAN.work; return [Math.max(0, Math.min(w.width, (e.clientX - r.left) / r.width * w.width)), Math.max(0, Math.min(w.height, (e.clientY - r.top) / r.height * w.height))]; }
+sq.addEventListener('pointerdown', e => {
+  if (!SCAN.work) return; e.preventDefault(); const p = sqPoint(e); let best = 0, bd = Infinity;
+  SCAN.quad.forEach((c, i) => { const d = Math.hypot(c[0] - p[0], c[1] - p[1]); if (d < bd) { bd = d; best = i; } });
+  SCAN.dragging = best; try { sq.setPointerCapture(e.pointerId); } catch (x) {} SCAN.quad[best] = p; scanQuadDraw();
+});
+sq.addEventListener('pointermove', e => { if (SCAN.dragging < 0 || !SCAN.work) return; SCAN.quad[SCAN.dragging] = sqPoint(e); scanQuadDraw(); });
+const sqEnd = () => { SCAN.dragging = -1; };
+sq.addEventListener('pointerup', sqEnd); sq.addEventListener('pointercancel', sqEnd);
+function scanRender(){
+  const img = scanFilter(warpQuad(SCAN.work, SCAN.quad), SCAN.filter);
+  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; c.getContext('2d').putImageData(img, 0, 0); return c;
+}
+async function scanAccept(){
+  if (!SCAN.work) return; busy('Straightening the page…'); $('#scanAdd').disabled = true;
+  await new Promise(r => requestAnimationFrame(() => r()));
+  try {
+    const c = scanRender();
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.84));
+    SCAN.batch.push({ bytes: new Uint8Array(await blob.arrayBuffer()), w: c.width, h: c.height });
+  } catch (e) { toast('Scan failed: ' + (e.message || e), 5000); busy(''); $('#scanAdd').disabled = false; return; }
+  busy(''); $('#scanAdd').disabled = false; SCAN.work = null; scanNext();
+}
+async function scanBuildPdf(pages){
+  const doc = await PDFDocument.create();
+  for (const p of pages) {
+    const img = await doc.embedJpg(p.bytes); const land = p.w > p.h;
+    const pw = land ? 595.28 * p.w / p.h : 595.28, ph = land ? 595.28 : 595.28 * p.h / p.w;
+    doc.addPage([pw, ph]).drawImage(img, { x: 0, y: 0, width: pw, height: ph });
+  }
+  return doc.save();
+}
+async function scanFinish(){
+  const pages = SCAN.batch; SCAN.batch = []; SCAN.queue = []; SCAN.work = null; closeModal('#scanModal');
+  if (!pages.length) return;
+  busy('Adding scanned pages…');
+  try {
+    const bytes = await scanBuildPdf(pages); const t = new Date(); const p2 = n => String(n).padStart(2, '0');
+    const name = `Scan ${t.getFullYear()}-${p2(t.getMonth() + 1)}-${p2(t.getDate())} ${p2(t.getHours())}.${p2(t.getMinutes())}.pdf`;
+    await addDoc(name, bytes, null, {});
+    toast(pages.length === 1 ? 'Scanned page added.' : `${pages.length} scanned pages added.`);
+  } catch (e) { toast('Could not add the scan: ' + (e.message || e), 5000); }
+  busy('');
+}
+function scanClose(){ if (SCAN.batch.length) scanFinish(); else { SCAN.queue = []; SCAN.work = null; closeModal('#scanModal'); } }
+$('#btnScan').addEventListener('click', scanOpen);
+$('#scanCamBtn').addEventListener('click', () => $('#scanCam').click());
+$('#scanPickBtn').addEventListener('click', () => $('#scanPick').click());
+for (const id of ['#scanCam', '#scanPick']) $(id).addEventListener('change', e => { const files = [...e.target.files]; e.target.value = ''; scanEnqueue(files); });
+$('#scanFilters').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; SCAN.filter = b.dataset.f; document.querySelectorAll('#scanFilters button').forEach(x => x.classList.toggle('on', x === b)); });
+$('#scanRotate').addEventListener('click', () => {
+  const w = SCAN.work; if (!w) return; const c = document.createElement('canvas'); c.width = w.height; c.height = w.width;
+  const ctx = c.getContext('2d', { willReadFrequently: true }); ctx.translate(c.width, 0); ctx.rotate(Math.PI / 2); ctx.drawImage(w, 0, 0);
+  SCAN.work = c; SCAN.quad = detectQuad(c); scanPaint();
+});
+$('#scanFull').addEventListener('click', () => { const w = SCAN.work; if (!w) return; SCAN.quad = [[0, 0], [w.width, 0], [w.width, w.height], [0, w.height]]; scanQuadDraw(); });
+$('#scanAdd').addEventListener('click', scanAccept);
+$('#scanSkip').addEventListener('click', () => { SCAN.work = null; scanNext(); });
+$('#scanDone').addEventListener('click', scanFinish);
+
+/* ---------------- share / email ---------------- */
+let readyFile = null;
+function nativeSend(action, name, bytes){ NATIVE.postMessage({ action, name, data: b64(bytes) }); }
+function canShareFile(file){ try { return !IN_CLAUDE && !!navigator.canShare && navigator.canShare({ files: [file] }); } catch (e) { return false; } }
+/* Returns true when the share sheet took over (or the user cancelled it), false when sharing is not possible here. */
+async function shareFile(file){
+  if (!canShareFile(file)) return false;
+  try { await navigator.share({ files: [file], title: file.name }); return true; }
+  catch (e) {
+    if (e && e.name === 'AbortError') return true;
+    if (e && e.name === 'NotAllowedError') { readyFile = file; $('#readyName').textContent = `${file.name} · ${fmtSize(file.size)}`; openModal('#readyModal'); return true; }
+    return false;
+  }
+}
+$('#readyShare').addEventListener('click', async () => {
+  const f = readyFile; readyFile = null; closeModal('#readyModal'); if (!f) return;
+  try { await navigator.share({ files: [f], title: f.name }); } catch (e) { if (!e || e.name !== 'AbortError') toast('Sharing failed: ' + (e && e.message || e), 5000); }
+});
+async function shareCurrent(mode){
+  if (exporting) return; if (!S.pages.length) { toast('Nothing to share yet.'); return; }
+  closeTextEditor(true);
+  let name = ($('#fileName').value || 'document.pdf').trim(); if (!/\.pdf$/i.test(name)) name += '.pdf';
+  exporting = true; busy(`Preparing ${name}…`);
+  let bytes;
+  try { bytes = await buildPdf(S.pages); }
+  catch (e) { console.error(e); toast('Could not build the PDF: ' + (e.message || e), 6000); exporting = false; busy(''); return; }
+  exporting = false; busy('');
+  if (NATIVE) { nativeSend(mode === 'share' ? 'share' : 'email', name, bytes); return; }
+  if (await shareFile(new File([bytes], name, { type: 'application/pdf' }))) return;
+  await deliver(bytes, name, true);
+  toast('This browser cannot hand a file to your mail app. The PDF was saved instead; attach it to your email.', 6500);
+}
+$('#btnShare').addEventListener('click', () => shareCurrent('email'));
+
+/* ---------------- phone sheet, install tip, launch files ---------------- */
+$('#sheetOpen').addEventListener('click', () => $('#inspector').classList.toggle('open'));
+$('#sheetClose').addEventListener('click', () => $('#inspector').classList.remove('open'));
+overlay.addEventListener('touchmove', e => { if (drag) e.preventDefault(); }, { passive: false });
+if (HOSTED && 'serviceWorker' in navigator) window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+(function(){
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  if (HOSTED && IS_IOS && !standalone && !lsGet('pk.tip')) { $('#installTip').hidden = false; }
+  $('#installTipClose').addEventListener('click', () => { $('#installTip').hidden = true; lsSet('pk.tip', '1'); });
+})();
+if ('launchQueue' in window && window.launchQueue.setConsumer) window.launchQueue.setConsumer(async p => { try { const files = await Promise.all((p.files || []).map(h => h.getFile())); if (files.length) openFiles(files, null); } catch (e) {} });
+
+async function prepWorker(){
+  if (IN_CLAUDE) return;
+  try {
+    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 4000);
+    const r = await fetch(CDN + 'pdf.js/3.11.174/pdf.worker.min.js', { signal: ctl.signal }); clearTimeout(t);
+    if (!r.ok) return;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([await r.text()], { type: 'text/javascript' }));
+  } catch (e) {}
+}
+
+/* ---------------- hooks for the Mac app menu and for tests ---------------- */
+function bytesFromB64(s){ const bin = atob(s); const a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a; }
+window.PKNative = {
+  done(action, ok, info){ if (action === 'save') toast(ok ? 'Saved ' + info : (info || 'Save cancelled.')); else if (!ok && info) toast(info, 5000); },
+};
+window.PK = {
+  openBytes(name, base64){
+    const ext = (/\.([a-z0-9]+)$/i.exec(name) || [0, ''])[1].toLowerCase();
+    const type = ext === 'pdf' ? 'application/pdf' : ext === 'png' ? 'image/png' : /^jpe?g$/.test(ext) ? 'image/jpeg' : ext ? 'image/' + ext : '';
+    return openFiles([new File([bytesFromB64(base64)], name, { type })], null);
+  },
+  scan: scanOpen, sign: chooseSign, exportPdf: () => exportPdf(false), share: mode => shareCurrent(mode), undo, redo,
+  zoom: f => setZoom(f ? S.zoom * f : 1), view: v => setView(v),
+  _: { S, SIG, SCAN, DB, pageErrors, addDoc, buildPdf, makeBlank, saveSession, restoreSession, detectQuad, warpQuad, scanFilter, scanBuildPdf, scanRender, sigCreate, placeSignature, renderStage, curPage, sigTab, openSigModal, kvGet, strokePath, flatten, lumOf },
+};
+
+/* ---------------- boot ---------------- */
+(async () => {
+  setTool('select'); setView('edit'); refresh(); sigInkRender();
+  await prepWorker();
+  await sigLoad(); renderSigLists();
+  let restored = false;
+  try { restored = await restoreSession(); } catch (e) { console.warn('restore', e); }
+  if (!restored) {
+    try { const bytes = await makeSample(); await addDoc('Sample.pdf', bytes, null, { sample: true }); S.undo.length = 0; S.dirty = false; clearTimeout(saveT); saveT = null; setSaveState(''); syncUndoButtons(); }
+    catch (e) { console.warn('sample', e); refresh(); }
+  }
+  window.PK.ready = true;
+  if (NATIVE) NATIVE.postMessage({ action: 'ready' });
+})();
+})();
+</script>
+
+</html>
