@@ -1,5 +1,5 @@
 /* Paperknife service worker: keeps the app and its two libraries available without a connection. */
-const VERSION = 'c558304206';
+const VERSION = 'a98f0f2a87';
 const CACHE = 'paperknife-' + VERSION;
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 const LIBS = [

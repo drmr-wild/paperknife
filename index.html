@@ -1615,7 +1615,8 @@ function chooseSign(){
 function placeSignature(pt){
   const s = activeSig(); const p = curPage(); if (!s || !p || !stageBase) return null;
   commit();
-  const w = Math.min(190, stageBase.width * 0.36), h = w * s.h / s.w;
+  let w = Math.min(190, stageBase.width * 0.36), h = w * s.h / s.w;
+  if (h > 72) { w *= 72 / h; h = 72; }
   const a = { id: nid(), type: 'image', sig: true, x: pt.x - w / 2, y: pt.y - h / 2, w, h, data: s.data };
   a.x = Math.max(0, Math.min(a.x, stageBase.width - w)); a.y = Math.max(0, Math.min(a.y, stageBase.height - h));
   p.anns.push(a); setTool('select'); S.selAnn = a.id; drawAnns(); updateInspector(); syncTileMeta();
