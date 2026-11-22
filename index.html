@@ -461,7 +461,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <div class="seg" id="sigTabs" style="justify-self:start">
           <button data-tab="draw" class="on">Draw</button>
           <button data-tab="type">Type</button>
-          <button data-tab="photo">From photo</button>
+          <button data-tab="photo">From image</button>
         </div>
       </div>
       <div data-pane="draw">
@@ -473,8 +473,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       </div>
       <div data-pane="photo" hidden>
         <div class="inkrow">
-          <button class="btn" id="sigPhotoBtn">Choose a photo of your signature…</button>
-          <span class="hint grow">Sign on white paper, photograph it, and the paper is removed.</span>
+          <button class="btn" id="sigPhotoBtn">Choose an image of your signature…</button>
+          <span class="hint grow">A photo or scan of your signature on white paper, or a PNG you already have. The paper is removed.</span>
         </div>
         <canvas id="sigPhotoPrev" hidden style="margin-top:8px"></canvas>
         <div class="field" id="sigThrBox" hidden style="margin-top:8px">
@@ -1557,7 +1557,8 @@ async function sigPhotoLoad(file){
   const img = await fileToImage(file);
   const sc = Math.min(1, 1100 / Math.max(img.naturalWidth, img.naturalHeight));
   const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.naturalWidth * sc)); c.height = Math.max(1, Math.round(img.naturalHeight * sc));
-  const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, c.width, c.height);
+  const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);   // a transparent PNG must read as ink on white paper
+  ctx.drawImage(img, 0, 0, c.width, c.height);
   const lum = flatten(lumOf(ctx.getImageData(0, 0, c.width, c.height).data, c.width * c.height), c.width, c.height);
   SIG.photo = { w: c.width, h: c.height, lum, out: document.createElement('canvas') };
   $('#sigThr').value = 150; $('#sigThrBox').hidden = false; sigPhotoRender();
